@@ -2,7 +2,7 @@ let Bloop = function(position) {
 
     this.id;
     this.health;
-    this.size = 25;
+    this.size = 14;
     this.maxSpeed = 1;
 
     this.bodyColor = sim.color(120, 150, 255);
