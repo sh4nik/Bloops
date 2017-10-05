@@ -16,8 +16,8 @@ let Bloop = function(position) {
     this.acceleration = sim.createVector(0, 0);
 
     this.brain = ENCOG.BasicNetwork.create([
-        ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),2,1),
-        ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),4,1),
+        ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),3,1),
+        ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),3,1),
         ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),6,0)
     ]);
     this.brain.randomize();
@@ -44,22 +44,21 @@ let Bloop = function(position) {
             var desired = p5.Vector.sub(this.nearestFood.position, this.position);
             nearestFoodVector = p5.Vector.sub(desired, this.velocity);
             nearestFoodVector.normalize();
-        } else {
-            nearestFoodVector = sim.createVector(0, 0);
+
+            let input = [nearestFoodVector.x, nearestFoodVector.y, this.nearestFood.isPoison ? 1 : -1];
+            let output = [];
+            this.brain.compute(input, output);
+
+            let outVector = sim.createVector(output[0], output[1]);
+            outVector.setMag(output[2]);
+            this.applyForce(outVector);
+            // this.velocity = outVector;
+
+            this.r = sim.map(output[3], -1, 1, 100, 255);
+            this.g = sim.map(output[4], -1, 1, 100, 255);
+            this.b = sim.map(output[5], -1, 1, 100, 255);
+
         }
-
-        let input = [nearestFoodVector.x, nearestFoodVector.y];
-        let output = [];
-        this.brain.compute(input, output);
-
-        let outVector = sim.createVector(output[0], output[1]);
-        outVector.setMag(output[2]);
-        this.applyForce(outVector);
-        // this.velocity = outVector;
-
-        this.r = sim.map(output[3], -1, 1, 100, 255);
-        this.g = sim.map(output[4], -1, 1, 100, 255);
-        this.b = sim.map(output[5], -1, 1, 100, 255);
     };
 
     this.applyForce = function(force) {
@@ -78,7 +77,11 @@ let Bloop = function(position) {
             }
         }
         if(nearestFoodIndex !== -1 && (shortestDistance < ((this.size < sim.food[nearestFoodIndex].size) ? sim.food[nearestFoodIndex].size : this.size - sim.food[nearestFoodIndex].size))) {
-            this.health += sim.food[nearestFoodIndex].health;
+            if(sim.food[nearestFoodIndex].isPoison) {
+                this.health -= sim.food[nearestFoodIndex].health;
+            } else {
+                this.health += sim.food[nearestFoodIndex].health;
+            }
             sim.food.splice(nearestFoodIndex, 1);
         } else {
             this.nearestFood = sim.food[nearestFoodIndex];

@@ -1,6 +1,6 @@
 let simulation = function(sim) {
 
-    sim.bloopCount = 100;
+    sim.bloopCount = 200;
     sim.foodCount = 200;
 
     sim.bloops = [];
@@ -47,7 +47,11 @@ let simulation = function(sim) {
 
     sim.drawFood = function(foodParticle) {
         sim.noStroke();
-        sim.fill(100, 180, 100);
+        if(foodParticle.isPoison) {
+            sim.fill(180, 100, 100);
+        } else {
+            sim.fill(100, 180, 100);
+        }
         sim.ellipse(foodParticle.position.x, foodParticle.position.y, foodParticle.size, foodParticle.size);
     };
 
