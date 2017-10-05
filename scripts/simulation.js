@@ -1,7 +1,7 @@
 let simulation = function(sim) {
 
     sim.bloopCount = 100;
-    sim.foodCount = 30;
+    sim.foodCount = 200;
 
     sim.bloops = [];
     sim.food = [];
@@ -10,7 +10,7 @@ let simulation = function(sim) {
     Food.sim = sim;
 
     sim.setup = function() {
-        let cnv = sim.createCanvas(1000, 900);
+        let cnv = sim.createCanvas(sim.windowWidth, sim.windowHeight);
         cnv.parent('simulation-container');
 
         for(let i = 0; i < sim.bloopCount; i++) {
@@ -33,10 +33,16 @@ let simulation = function(sim) {
             sim.drawFood(foodParticle);
         });
 
-        sim.bloops.forEach(bloop => {
-            bloop.update();
-            sim.drawBloop(bloop);
-        });
+        var i = sim.bloops.length;
+        while (i--) {
+            let bloop = sim.bloops[i];
+            if(bloop.health > 0) {
+                bloop.update();
+                sim.drawBloop(bloop);
+            } else {
+                sim.bloops.splice(i, 1);
+            }
+        }
     };
 
     sim.drawFood = function(foodParticle) {
@@ -58,7 +64,7 @@ let simulation = function(sim) {
         sim.ellipse(0, 0, bloop.size, bloop.size);
         sim.line(0, 0, 0, -bloop.size / 2);
 
-        sim.fill(255);
+        sim.fill(bloop.health > 45 ? bloop.health : 45);
         sim.ellipse(0, -bloop.size / 2, bloop.size / 3, bloop.size / 3);
 
 

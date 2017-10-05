@@ -1,7 +1,7 @@
 let Bloop = function(position) {
 
     this.id;
-    this.health;
+    this.health = 200;
     this.size = 14;
     this.maxSpeed = 1;
 
@@ -30,6 +30,11 @@ let Bloop = function(position) {
         this.position.add(this.velocity);
         this.acceleration.mult(0);
         this.boundaries();
+        this.updateStats();
+    };
+
+    this.updateStats = function() {
+        this.health--;
     };
 
     this.calculateNext = function() {
@@ -50,6 +55,7 @@ let Bloop = function(position) {
         let outVector = sim.createVector(output[0], output[1]);
         outVector.setMag(output[2]);
         this.applyForce(outVector);
+        // this.velocity = outVector;
 
         this.r = sim.map(output[3], -1, 1, 100, 255);
         this.g = sim.map(output[4], -1, 1, 100, 255);
@@ -72,6 +78,7 @@ let Bloop = function(position) {
             }
         }
         if(nearestFoodIndex !== -1 && (shortestDistance < ((this.size < sim.food[nearestFoodIndex].size) ? sim.food[nearestFoodIndex].size : this.size - sim.food[nearestFoodIndex].size))) {
+            this.health += sim.food[nearestFoodIndex].health;
             sim.food.splice(nearestFoodIndex, 1);
         } else {
             this.nearestFood = sim.food[nearestFoodIndex];
