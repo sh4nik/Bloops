@@ -1,7 +1,7 @@
 let Bloop = function(position, dna) {
 
     this.id;
-    this.health = 500;
+    this.health = 200;
     this.size = 14;
     this.maxSpeed = 1;
 
@@ -119,13 +119,17 @@ let Bloop = function(position, dna) {
 
         this.crossover(dna1, dna2, child1, child2);
 
-        let child = sim.random(1) < 0.5 ? child1 : child2;
+        let child;
+        let childBrain = sim.random(1) < 0.5 ? child1 : child2;
         if(sim.random(1) < sim.mutationRate)  {
-            this.mutate(child);
-            this.bodyColor = sim.color(100);
+            this.mutate(childBrain);
+            child = new Bloop(new p5.Vector(sim.random(sim.width), sim.random(sim.height)), childBrain);
+            child.bodyColor = sim.color(100);
+        } else {
+            child = new Bloop(new p5.Vector(sim.random(sim.width), sim.random(sim.height)), childBrain);
         }
 
-        return new Bloop(new p5.Vector(sim.random(sim.width), sim.random(sim.height)), child1);
+        return child;
     }
 
     this.crossover = function performCrossover(motherArray, fatherArray, child1Array, child2Array) {

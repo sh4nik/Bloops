@@ -11,4 +11,4 @@ let Food = function(position) {
 
 Food.prototype.sim;
 Food.prototype.size = 5;
-Food.prototype.health = 300;
+Food.prototype.health = 250;
