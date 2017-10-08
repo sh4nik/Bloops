@@ -1,11 +1,13 @@
-let Bloop = function(position) {
+let Bloop = function(position, dna) {
 
     this.id;
-    this.health = 200;
+    this.health = 500;
     this.size = 14;
     this.maxSpeed = 1;
 
-    this.bodyColor = sim.color(120, 150, 255);
+    sim.mutationRate = 0.4;
+
+    this.bodyColor = sim.color(120, 200, 255);
 
     this.r = sim.random(100, 255);
     this.g = sim.random(100, 255);
@@ -21,6 +23,10 @@ let Bloop = function(position) {
         ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),6,0)
     ]);
     this.brain.randomize();
+
+    if (dna) {
+        this.brain.weights = dna;
+    }
 
     this.update = function() {
         this.processNearestFood();
@@ -54,9 +60,9 @@ let Bloop = function(position) {
             this.applyForce(outVector);
             // this.velocity = outVector;
 
-            this.r = sim.map(output[3], -1, 1, 100, 255);
-            this.g = sim.map(output[4], -1, 1, 100, 255);
-            this.b = sim.map(output[5], -1, 1, 100, 255);
+            this.r = sim.map(output[3], -1, 1, 80, 255);
+            this.g = sim.map(output[4], -1, 1, 80, 255);
+            this.b = sim.map(output[5], -1, 1, 80, 255);
 
         }
     };
@@ -105,13 +111,24 @@ let Bloop = function(position) {
     }
 
     this.mate = function(bloopPartner) {
-        let dna1 = this.brain;
-        let dna2 = bloopPartner.brain;
+        let dna1 = this.brain.weights;
+        let dna2 = bloopPartner.brain.weights;
 
+        let child1 = [];
+        let child2 = [];
 
+        this.crossover(dna1, dna2, child1, child2);
+
+        let child = sim.random(1) < 0.5 ? child1 : child2;
+        if(sim.random(1) < sim.mutationRate)  {
+            this.mutate(child);
+            this.bodyColor = sim.color(100);
+        }
+
+        return new Bloop(new p5.Vector(sim.random(sim.width), sim.random(sim.height)), child1);
     }
 
-    genetic.crossover = function performCrossover(motherArray, fatherArray, child1Array, child2Array) {
+    this.crossover = function performCrossover(motherArray, fatherArray, child1Array, child2Array) {
         // the chromosome must be cut at two positions, determine them
         var cutLength = motherArray.length / 5;
         var cutpoint1 = Math.floor(Math.random() * (motherArray.length - cutLength));
@@ -136,13 +153,28 @@ let Bloop = function(position) {
         {
             if ((i < cutpoint1) || (i > cutpoint2))
             {
-                child1Array[i] = getNotTaken(motherArray,taken1);
-                child2Array[i] = getNotTaken(fatherArray,taken2);
+                child1Array[i] = this.getNotTaken(motherArray,taken1);
+                child2Array[i] = this.getNotTaken(fatherArray,taken2);
             }
         }
     };
 
-    genetic.mutate = function performMutation(data) {
+    this.getNotTaken = function (source, taken)
+        {
+            for(var i=0;i<source.length;i++)
+            {
+                var trial = source[i];
+                if( taken[trial] != true )
+                {
+                    taken[trial] = true;
+                    return trial;
+                }
+            }
+            return -1;
+        }
+
+
+    this.mutate = function performMutation(data) {
         var iswap1 = Math.floor(Math.random() * data.length);
         var iswap2 = Math.floor(Math.random() * data.length);
         // can't be equal
