@@ -23,7 +23,7 @@ let Bloop = function(position, dna) {
     this.brain = ENCOG.BasicNetwork.create([
         ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),7,1),
         ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),8,1),
-        ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),7,0)
+        ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),4,0)
     ]);
     this.brain.randomize();
 
@@ -44,7 +44,7 @@ let Bloop = function(position, dna) {
     };
 
     this.updateStats = function() {
-        this.health = this.health - (this.isAgro ? 1.5 : 1);
+        this.health = this.health - (this.isAgro ? 1.6 : 1);
         this.age += 0.005;
         this.size = this.age < 16 ? this.age : 16;
     };
@@ -81,11 +81,11 @@ let Bloop = function(position, dna) {
             this.applyForce(outVector);
             // this.velocity = outVector;
 
-            this.r = sim.map(output[3], -1, 1, 80, 255);
-            this.g = sim.map(output[4], -1, 1, 80, 255);
-            this.b = sim.map(output[5], -1, 1, 80, 255);
+            this.r = sim.map(input[2], -1, 1, 80, 255);
+            this.g = sim.map(input[6], -1, 1, 80, 255);
+            this.b = sim.map(input[5], -1, 1, 80, 255);
 
-            this.isAgro = output[6] > 0;
+            this.isAgro = output[3] > 0.8;
 
         }
     };
@@ -134,8 +134,8 @@ let Bloop = function(position, dna) {
 
         if(nearestBloopIndex !== -1 && (shortestDistance < ((this.size < sim.bloops[nearestBloopIndex].size) ? sim.bloops[nearestBloopIndex].size : this.size - sim.bloops[nearestBloopIndex].size))) {
             if(this.isAgro) {
-                this.health += Food.prototype.health * 7;
-                this.nearestBloop.health -= Food.prototype.health * 7;
+                this.health += Food.prototype.health * 4;
+                this.nearestBloop.health -= Food.prototype.health * 6;
             }
         }
         
@@ -166,11 +166,12 @@ let Bloop = function(position, dna) {
         this.crossover(dna1, dna2, child1, child2);
 
         let child;
-        let childBrain = sim.random(1) < 0.5 ? child1 : child2;
+        let toss = sim.random(1);
+        let childBrain = toss < 0.2 ? child1 : toss < 0.4 ? child2 : dna1;
         if(sim.random(1) < sim.mutationRate)  {
             this.mutate(childBrain);
             child = new Bloop(new p5.Vector(this.position.x + sim.random(-this.size * 2, this.size * 2), this.position.y + sim.random(-this.size * 2, this.size * 2)), childBrain);
-            child.bodyColor = sim.color(100);
+            child.bodyColor = sim.color(150);
         } else {
             child = new Bloop(new p5.Vector(this.position.x + sim.random(-this.size * 2, this.size * 2), this.position.y + sim.random(-this.size * 2, this.size * 2)), childBrain);
         }
