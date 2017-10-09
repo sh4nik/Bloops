@@ -1,6 +1,7 @@
 let Bloop = function(position, dna) {
 
     this.id;
+    this.age = 10;
     this.health = 200;
     this.size = 14;
     this.maxSpeed = 1;
@@ -17,10 +18,12 @@ let Bloop = function(position, dna) {
     this.velocity = sim.createVector(0, 0);
     this.acceleration = sim.createVector(0, 0);
 
+    this.isAgro = false;
+
     this.brain = ENCOG.BasicNetwork.create([
-        ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),3,1),
-        ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),3,1),
-        ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),6,0)
+        ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),7,1),
+        ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),8,1),
+        ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),7,0)
     ]);
     this.brain.randomize();
 
@@ -30,6 +33,7 @@ let Bloop = function(position, dna) {
 
     this.update = function() {
         this.processNearestFood();
+        this.processNearestBloop();
         this.calculateNext();
         this.velocity.add(this.acceleration);
         this.velocity.limit(this.maxSpeed);
@@ -40,19 +44,36 @@ let Bloop = function(position, dna) {
     };
 
     this.updateStats = function() {
-        this.health--;
+        this.health = this.health - (this.isAgro ? 1.5 : 1);
+        this.age += 0.005;
+        this.size = this.age < 16 ? this.age : 16;
     };
 
     this.calculateNext = function() {
 
         let nearestFoodVector;
-        if(this.nearestFood) {
+        let nearestBloopVector;
+        if(this.nearestFood && this.nearestBloop) {
             var desired = p5.Vector.sub(this.nearestFood.position, this.position);
             nearestFoodVector = p5.Vector.sub(desired, this.velocity);
             nearestFoodVector.normalize();
 
-            let input = [nearestFoodVector.x, nearestFoodVector.y, this.nearestFood.isPoison ? 1 : -1];
+            var desiredB = p5.Vector.sub(this.nearestBloop.position, this.position);
+            nearestBloopVector = p5.Vector.sub(desiredB, this.velocity);
+            nearestBloopVector.normalize();
+
+            let input = [
+                nearestFoodVector.x,
+                nearestFoodVector.y,
+                this.nearestFood.isPoison ? 1 : -1,
+                nearestBloopVector.x,
+                nearestBloopVector.y,
+                this.nearestBloop.isAgro ? 1 : -1,
+                sim.map(this.health > 600 ? 600 : this.health, 0, 600, -1, 1)
+            ];
+
             let output = [];
+
             this.brain.compute(input, output);
 
             let outVector = sim.createVector(output[0], output[1]);
@@ -63,6 +84,8 @@ let Bloop = function(position, dna) {
             this.r = sim.map(output[3], -1, 1, 80, 255);
             this.g = sim.map(output[4], -1, 1, 80, 255);
             this.b = sim.map(output[5], -1, 1, 80, 255);
+
+            this.isAgro = output[6] > 0;
 
         }
     };
@@ -82,7 +105,7 @@ let Bloop = function(position, dna) {
                 nearestFoodIndex = i;
             }
         }
-        if(nearestFoodIndex !== -1 && (shortestDistance < ((this.size < sim.food[nearestFoodIndex].size) ? sim.food[nearestFoodIndex].size : this.size - sim.food[nearestFoodIndex].size))) {
+        if(!this.isAgro && nearestFoodIndex !== -1 && (shortestDistance < ((this.size < sim.food[nearestFoodIndex].size) ? sim.food[nearestFoodIndex].size : this.size - sim.food[nearestFoodIndex].size))) {
             if(sim.food[nearestFoodIndex].isPoison) {
                 this.health -= sim.food[nearestFoodIndex].health;
             } else {
@@ -91,6 +114,29 @@ let Bloop = function(position, dna) {
             sim.food.splice(nearestFoodIndex, 1);
         } else {
             this.nearestFood = sim.food[nearestFoodIndex];
+        }
+        
+    };
+
+    this.processNearestBloop = function() {
+        this.nearestBloop = null;
+        let nearestBloopIndex = -1;
+        let shortestDistance = sim.width;
+        for(let i = 0; i < sim.bloops.length; i++) {
+            let dist = this.position.dist(sim.bloops[i].position);
+            if(dist < shortestDistance  && sim.bloops[i] != this) {
+                shortestDistance = dist;
+                nearestBloopIndex = i;
+            }
+        }
+
+        this.nearestBloop = sim.bloops[nearestBloopIndex];
+
+        if(nearestBloopIndex !== -1 && (shortestDistance < ((this.size < sim.bloops[nearestBloopIndex].size) ? sim.bloops[nearestBloopIndex].size : this.size - sim.bloops[nearestBloopIndex].size))) {
+            if(this.isAgro) {
+                this.health += Food.prototype.health * 7;
+                this.nearestBloop.health -= Food.prototype.health * 7;
+            }
         }
         
     };
@@ -123,10 +169,10 @@ let Bloop = function(position, dna) {
         let childBrain = sim.random(1) < 0.5 ? child1 : child2;
         if(sim.random(1) < sim.mutationRate)  {
             this.mutate(childBrain);
-            child = new Bloop(new p5.Vector(sim.random(sim.width), sim.random(sim.height)), childBrain);
+            child = new Bloop(new p5.Vector(this.position.x + sim.random(-this.size * 2, this.size * 2), this.position.y + sim.random(-this.size * 2, this.size * 2)), childBrain);
             child.bodyColor = sim.color(100);
         } else {
-            child = new Bloop(new p5.Vector(sim.random(sim.width), sim.random(sim.height)), childBrain);
+            child = new Bloop(new p5.Vector(this.position.x + sim.random(-this.size * 2, this.size * 2), this.position.y + sim.random(-this.size * 2, this.size * 2)), childBrain);
         }
 
         return child;
@@ -201,6 +247,3 @@ let Bloop = function(position, dna) {
 };
 
 Bloop.prototype.sim;
-Bloop.prototype.lastId = 0;
-Bloop.prototype.deathRate = 0.8;
-Bloop.prototype.foodHealth = 500;

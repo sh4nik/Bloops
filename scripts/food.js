@@ -1,7 +1,7 @@
 let Food = function(position) {
 
     this.position = position;
-    this.isPoison = sim.random(1) > 0.7;
+    this.isPoison = sim.food.filter(f => !f.isPoison).length / sim.food.length > 0.7;
 
     this.draw = function() {
 
