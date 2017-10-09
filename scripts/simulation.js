@@ -103,8 +103,8 @@ let simulation = function(sim) {
 
 
         sim.noStroke();
-        sim.fill(200, 30);
-        sim.rect(-bloop.size / 4, bloop.size / 2, bloop.size / 2, bloop.velocity.mag() * bloop.size * 0.6);
+        sim.fill(200, 20);
+        sim.rect(-(bloop.size / 4 * 3) / 2, bloop.size / 2, bloop.size / 4 * 3, bloop.velocity.mag() * bloop.size * 0.6);
 
         sim.stroke(20);
         sim.strokeWeight(bloop.size / 8);
