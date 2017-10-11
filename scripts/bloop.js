@@ -2,7 +2,7 @@ let Bloop = function(position, dna) {
 
     this.id;
     this.age = 12;
-    this.health = 200;
+    this.health = 250;
     this.size = 14;
     this.maxSpeed = 1;
 
