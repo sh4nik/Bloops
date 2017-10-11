@@ -70,12 +70,22 @@ let simulation = function(sim) {
     };
 
     sim.drawFood = function(foodParticle) {
+        sim.noStroke();
+        if(foodParticle.isPoison) {
+            sim.fill(250, 80, 200, 1);
+            sim.ellipse(foodParticle.position.x, foodParticle.position.y, foodParticle.size * 10, foodParticle.size * 10);
+        } else {
+            sim.fill(80, 150, 140, 1);
+            sim.ellipse(foodParticle.position.x, foodParticle.position.y, foodParticle.size * 30, foodParticle.size * 30);
+        }
+
         sim.stroke(5);
         if(foodParticle.isPoison) {
-            sim.fill(150, 80, 100);
+            sim.fill(200, 80, 200);
         } else {
-            sim.fill(80, 150, 100);
+            sim.fill(80, 250, 240);
         }
+
         sim.ellipse(foodParticle.position.x, foodParticle.position.y, foodParticle.size, foodParticle.size);
     };
 
