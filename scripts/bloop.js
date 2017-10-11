@@ -1,7 +1,7 @@
 let Bloop = function(position, dna) {
 
     this.id;
-    this.age = 10;
+    this.age = 12;
     this.health = 200;
     this.size = 14;
     this.maxSpeed = 1;
@@ -44,9 +44,9 @@ let Bloop = function(position, dna) {
     };
 
     this.updateStats = function() {
-        this.health = this.health - (this.isAgro ? 1.6 : 1);
+        this.health = this.health - (this.isAgro ? 2. : 1);
         this.age += 0.005;
-        this.size = this.age < 16 ? this.age : 16;
+        this.size = this.age < 18 ? this.age : 18;
     };
 
     this.calculateNext = function() {
