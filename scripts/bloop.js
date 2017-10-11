@@ -34,17 +34,17 @@ let Bloop = function(position, dna) {
     this.update = function() {
         this.processNearestFood();
         this.processNearestBloop();
+        this.acceleration.mult(0);
         this.calculateNext();
         this.velocity.add(this.acceleration);
         this.velocity.limit(this.maxSpeed);
         this.position.add(this.velocity);
-        this.acceleration.mult(0);
         this.boundaries();
         this.updateStats();
     };
 
     this.updateStats = function() {
-        this.health = this.health - (this.isAgro ? 2. : 1);
+        this.health = this.health - (this.isAgro ? 2.5 : 1);
         this.age += 0.005;
         this.size = this.age < 18 ? this.age : 18;
     };
