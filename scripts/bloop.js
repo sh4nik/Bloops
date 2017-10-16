@@ -180,61 +180,45 @@ let Bloop = function(position, dna) {
     }
 
     this.crossover = function performCrossover(motherArray, fatherArray, child1Array, child2Array) {
-        // the chromosome must be cut at two positions, determine them
         var cutLength = motherArray.length / 5;
         var cutpoint1 = Math.floor(Math.random() * (motherArray.length - cutLength));
         var cutpoint2 = cutpoint1 + cutLength;
-        // keep track of which genes have been taken in each of the two
-        // offspring, defaults to false.
         var taken1 = {};
         var taken2 = {};
-        // handle cut section
-        for (var i = 0; i < motherArray.length; i++)
-        {
-            if (!((i < cutpoint1) || (i > cutpoint2)))
-            {
+        for (var i = 0; i < motherArray.length; i++) {
+            if (!((i < cutpoint1) || (i > cutpoint2))) {
                 child1Array[i] = fatherArray[i];
                 child2Array[i] = motherArray[i];
                 taken1[fatherArray[i]] = true;
                 taken2[motherArray[i]] = true;
             }
         }
-        // handle outer sections
-        for (var i = 0; i < motherArray.length; i++)
-        {
-            if ((i < cutpoint1) || (i > cutpoint2))
-            {
+        for (var i = 0; i < motherArray.length; i++) {
+            if ((i < cutpoint1) || (i > cutpoint2)) {
                 child1Array[i] = this.getNotTaken(motherArray,taken1);
                 child2Array[i] = this.getNotTaken(fatherArray,taken2);
             }
         }
     };
 
-    this.getNotTaken = function (source, taken)
-        {
-            for(var i=0;i<source.length;i++)
-            {
-                var trial = source[i];
-                if( taken[trial] != true )
-                {
-                    taken[trial] = true;
-                    return trial;
-                }
+    this.getNotTaken = function (source, taken) {
+        for(var i=0;i<source.length;i++) {
+            var trial = source[i];
+            if( taken[trial] != true ) {
+                taken[trial] = true;
+                return trial;
             }
-            return -1;
         }
+        return -1;
+    };
 
 
     this.mutate = function performMutation(data) {
         var iswap1 = Math.floor(Math.random() * data.length);
         var iswap2 = Math.floor(Math.random() * data.length);
-        // can't be equal
-        if (iswap1 == iswap2)
-        {
-            // move to the next, but
-            // don't go out of bounds
-            if (iswap1 > 0)
-            {
+
+        if (iswap1 == iswap2) {
+            if (iswap1 > 0) {
                 iswap1--;
             } else {
                 iswap1++;
