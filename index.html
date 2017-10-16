@@ -19,10 +19,44 @@
         canvas {
             display:block;
         }
+        #menu {
+            background: #222;
+            border: solid 2px #333;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            border-radius: 5px;
+            text-align: left;
+            vertical-align: middle;
+            font-size: 26px;
+            font-weight: bold;
+            color: #50faf0;
+            padding: 1px 8px;
+            cursor: pointer;
+            font-family: monospace;
+        }
+        #simulation-container {
+            
+        }
+        #menu-content {
+            display: none;
+            font-size: 12px;
+            font-weight: bold;
+            opacity: 0.5;
+        }
+        #menu:hover #menu-content {
+            display: block;
+            color: #50faf0;
+        }
 
     </style>
   </head>
   <body>
-      <div id="simulation-container"></div>
+      <div id="menu" onclick="toggleMenu()">?
+          <div id="menu-content">
+              <h2>Welcome to  Bloops.xyz!</h2>
+          </div>
+     </div>
+     <div id="simulation-container"></div>
   </body>
 </html>
