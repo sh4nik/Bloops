@@ -4,7 +4,7 @@ let Bloop = function(position, dna) {
     this.age = 12;
     this.health = 550;
     this.size = 14;
-    this.maxSpeed = 1;
+    this.maxSpeed = 1.3;
 
     sim.mutationRate = 0.4;
 
@@ -134,8 +134,9 @@ let Bloop = function(position, dna) {
 
         if(nearestBloopIndex !== -1 && (shortestDistance < ((this.size < sim.bloops[nearestBloopIndex].size) ? sim.bloops[nearestBloopIndex].size : this.size - sim.bloops[nearestBloopIndex].size))) {
             if(this.isAgro) {
-                this.health += Food.prototype.health * 4;
-                this.nearestBloop.health -= Food.prototype.health * 6;
+                let absorbtionRate = (this.age < 18 ? this.age  * 0.2 : 18  * 0.5);
+                this.health += Food.prototype.health * 4 * absorbtionRate;
+                this.nearestBloop.health -= Food.prototype.health * 6 * absorbtionRate;
             }
         }
         

@@ -1,10 +1,10 @@
 let simulation = function(sim) {
 
     sim.bloopCount = 30;
-    sim.foodCount = 200;
+    sim.foodCount = 400;
 
     sim.matingRate = 0.0008;
-    sim.maxBloops = 800;
+    sim.maxBloops = 50;
     sim.minBloops = 30;
 
     sim.bloops = [];
@@ -123,7 +123,8 @@ let simulation = function(sim) {
 
         sim.noStroke();
         sim.fill(200, 40);
-        sim.triangle(0, 0, -bloop.size / 2 * bloop.velocity.mag(), bloop.velocity.mag() * bloop.size, bloop.size / 2 * bloop.velocity.mag(), bloop.velocity.mag() * bloop.size);
+        let tailScale = bloop.velocity.mag() * bloop.maxSpeed * 0.55;
+        sim.triangle(0, 0, -bloop.size / 2 * tailScale, tailScale * bloop.size, bloop.size / 2 * tailScale, tailScale * bloop.size);
 
         sim.stroke(20);
         sim.strokeWeight(bloop.size / 8);
