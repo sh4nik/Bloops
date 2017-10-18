@@ -8,7 +8,8 @@ let Bloop = function(position, dna) {
 
     sim.mutationRate = 0.4;
 
-    this.bodyColor = sim.color(120, 200, 255);
+    this.bodyColorO = sim.color(120, 200, 255);
+    this.outlineColor = sim.color(20);
 
     this.r = sim.random(100, 255);
     this.g = sim.random(100, 255);
@@ -32,6 +33,7 @@ let Bloop = function(position, dna) {
     }
 
     this.update = function() {
+        this.bodyColor = this.bodyColorO;
         this.processNearestFood();
         this.processNearestBloop();
         this.acceleration.mult(0);
@@ -132,11 +134,14 @@ let Bloop = function(position, dna) {
 
         this.nearestBloop = sim.bloops[nearestBloopIndex];
 
-        if(nearestBloopIndex !== -1 && (shortestDistance < ((this.size < sim.bloops[nearestBloopIndex].size) ? sim.bloops[nearestBloopIndex].size : this.size - sim.bloops[nearestBloopIndex].size))) {
+        if(nearestBloopIndex !== -1 && (shortestDistance < (this.size / 2 + sim.bloops[nearestBloopIndex].size / 2 ) * 1.4)) {
             if(this.isAgro) {
                 let absorbtionRate = (this.age < 18 ? this.age  * 0.2 : 18  * 0.5);
                 this.health += Food.prototype.health * 4 * absorbtionRate;
                 this.nearestBloop.health -= Food.prototype.health * 6 * absorbtionRate;
+            }
+            if(this.nearestBloop.isAgro) {
+                this.bodyColor = sim.color(200, 80, 80);
             }
         }
         
@@ -172,7 +177,7 @@ let Bloop = function(position, dna) {
         if(sim.random(1) < sim.mutationRate)  {
             this.mutate(childBrain);
             child = new Bloop(new p5.Vector(this.position.x + sim.random(-this.size * 2, this.size * 2), this.position.y + sim.random(-this.size * 2, this.size * 2)), childBrain);
-            child.bodyColor = sim.color(150);
+            child.bodyColorO = sim.color(150);
         } else {
             child = new Bloop(new p5.Vector(this.position.x + sim.random(-this.size * 2, this.size * 2), this.position.y + sim.random(-this.size * 2, this.size * 2)), childBrain);
         }

@@ -96,7 +96,7 @@ let simulation = function(sim) {
         var angle = bloop.velocity.heading() + sim.PI / 2;
         sim.rotate(angle);
 
-        sim.stroke(20);
+        sim.stroke(bloop.outlineColor);
         sim.strokeWeight(bloop.size / 8);
         if (bloop === sim.bloops[0]) {
             sim.fill(200, 100, 250);
@@ -114,7 +114,7 @@ let simulation = function(sim) {
             sim.triangle(bloop.size / 4, -bloop.size / 2, 0, -bloop.size / 2, bloop.size / 4, -bloop.size / 5 * 3);
         }
 
-        sim.stroke(20);
+        sim.stroke(bloop.outlineColor);
 
         sim.fill(bloop.health > 45 ? bloop.health : sim.color(45));
         
