@@ -3,7 +3,7 @@ let simulation = function(sim) {
     sim.bloopCount = 30;
     sim.foodCount = 400;
 
-    sim.matingRate = 0.0008;
+    sim.matingRate = 0.004;
     sim.maxBloops = 50;
     sim.minBloops = 30;
 
