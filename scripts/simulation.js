@@ -55,6 +55,7 @@ let simulation = function(sim) {
                 bloop.update();
                 sim.drawBloop(bloop);
             } else {
+                sim.food.push(new Food(new p5.Vector(sim.bloops[i].position.x, sim.bloops[i].position.y), false));
                 sim.bloops.splice(i, 1);
             }
         }
