@@ -46,7 +46,7 @@ let Bloop = function(position, dna) {
     };
 
     this.updateStats = function() {
-        this.health = this.health - (this.isAgro ? 4 : 1);
+        this.health = this.health - (this.isAgro ? 100 : 1);
         this.age += 0.005;
         this.size = this.age < 18 ? this.age : 18;
     };
@@ -109,7 +109,7 @@ let Bloop = function(position, dna) {
         }
         if(!this.isAgro && nearestFoodIndex !== -1 && (shortestDistance < ((this.size < sim.food[nearestFoodIndex].size) ? sim.food[nearestFoodIndex].size : this.size - sim.food[nearestFoodIndex].size))) {
             if(sim.food[nearestFoodIndex].isPoison) {
-                this.health -= sim.food[nearestFoodIndex].health;
+                this.health -= sim.food[nearestFoodIndex].health * 5;
             } else {
                 this.health += sim.food[nearestFoodIndex].health;
             }
