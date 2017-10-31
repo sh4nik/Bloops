@@ -63,11 +63,33 @@ let simulation = function(sim) {
         if(sim.bloops.length < sim.maxBloops) {
             sim.bloops.forEach(bloop => {
                 if(sim.random(1) < sim.matingRate) {
-                    sim.bloops.push(bloop.mate(sim.bloops[0]));
+                    sim.bloops.push(bloop.mate(sim.findPartner()));
                 }
             });
         }
 
+    };
+
+    sim.findPartner = function() {
+        let total = 0;
+        sim.bloops.forEach(bloop => {
+            total += bloop.health;
+        });
+        sim.bloops.forEach(bloop => {
+            bloop.matingProbability = bloop.health / total;
+        });
+
+        let x = sim.random(1);
+        let index = 0;
+
+        while(x > 0) {
+            x -= sim.bloops[index].matingProbability;
+            index++;
+        }
+
+        index--;
+
+        return sim.bloops[index];
     };
 
     sim.drawFood = function(foodParticle) {
