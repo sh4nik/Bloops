@@ -6,7 +6,7 @@ let Bloop = function(position, dna) {
     this.size = 14;
     this.maxSpeed = 1.3;
 
-    sim.mutationRate = 0.4;
+    sim.mutationRate = 0.25;
 
     this.bodyColorO = sim.color(120, 200, 255);
     this.outlineColor = sim.color(20);
@@ -22,8 +22,8 @@ let Bloop = function(position, dna) {
     this.isAgro = false;
 
     this.brain = ENCOG.BasicNetwork.create([
-        ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),7,1),
-        ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),8,1),
+        ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),6,1),
+        ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),4,1),
         ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),4,0)
     ]);
     this.brain.randomize();
@@ -70,8 +70,8 @@ let Bloop = function(position, dna) {
                 this.nearestFood.isPoison ? 1 : -1,
                 nearestBloopVector.x,
                 nearestBloopVector.y,
-                this.nearestBloop.isAgro ? 1 : -1,
-                sim.map(this.health > 600 ? 600 : this.health, 0, 600, -1, 1)
+                this.nearestBloop.isAgro ? 1 : -1
+                // sim.map(this.health > 600 ? 600 : this.health, 0, 600, -1, 1)
             ];
 
             let output = [];
@@ -84,7 +84,7 @@ let Bloop = function(position, dna) {
             // this.velocity = outVector;
 
             this.r = sim.map(input[2], -1, 1, 80, 255);
-            this.g = sim.map(input[6], -1, 1, 80, 255);
+            this.g = sim.map(sim.map(this.health > 600 ? 600 : this.health, 0, 600, -1, 1), -1, 1, 80, 255);
             this.b = sim.map(input[5], -1, 1, 80, 255);
 
             this.isAgro = output[3] > 0.8;
@@ -166,14 +166,14 @@ let Bloop = function(position, dna) {
         let dna1 = this.brain.weights;
         let dna2 = bloopPartner.brain.weights;
 
-        let child1 = [];
-        let child2 = [];
+        let children = this.crossover(dna1, dna2);
 
-        this.crossover(dna1, dna2, child1, child2);
+        let child1 = children[0];
+        let child2 = children[1];
 
         let child;
         let toss = sim.random(1);
-        let childBrain = toss < 0.2 ? child1 : toss < 0.4 ? child2 : dna1;
+        let childBrain = toss < 0.5 ? child1 : toss < 0.7 ? child2 : dna1;
         if(sim.random(1) < sim.mutationRate)  {
             this.mutate(childBrain);
             child = new Bloop(new p5.Vector(this.position.x + sim.random(-this.size * 2, this.size * 2), this.position.y + sim.random(-this.size * 2, this.size * 2)), childBrain);
@@ -185,26 +185,32 @@ let Bloop = function(position, dna) {
         return child;
     }
 
-    this.crossover = function performCrossover(motherArray, fatherArray, child1Array, child2Array) {
-        var cutLength = motherArray.length / 5;
-        var cutpoint1 = Math.floor(Math.random() * (motherArray.length - cutLength));
-        var cutpoint2 = cutpoint1 + cutLength;
-        var taken1 = {};
-        var taken2 = {};
-        for (var i = 0; i < motherArray.length; i++) {
-            if (!((i < cutpoint1) || (i > cutpoint2))) {
-                child1Array[i] = fatherArray[i];
-                child2Array[i] = motherArray[i];
-                taken1[fatherArray[i]] = true;
-                taken2[motherArray[i]] = true;
-            }
+    this.crossover = function performCrossover(motherArray, fatherArray) {
+        var len = motherArray.length;
+        var cl = Math.floor(len / 3);
+        var ca = cl;
+        var cb = ca + cl;     
+        if (ca > cb) {
+            var tmp = cb;
+            cb = ca;
+            ca = tmp;
         }
-        for (var i = 0; i < motherArray.length; i++) {
-            if ((i < cutpoint1) || (i > cutpoint2)) {
-                child1Array[i] = this.getNotTaken(motherArray,taken1);
-                child2Array[i] = this.getNotTaken(fatherArray,taken2);
-            }
-        }
+
+        var child1ArrayTemp = [];
+        child1ArrayTemp = child1ArrayTemp.concat(fatherArray.slice(0,ca));
+        child1ArrayTemp = child1ArrayTemp.concat(motherArray.slice(ca, cb));
+        child1ArrayTemp = child1ArrayTemp.concat(fatherArray.slice(cb, len));
+
+        var child2ArrayTemp = [];
+        child2ArrayTemp = child2ArrayTemp.concat(motherArray.slice(0,ca));
+        child2ArrayTemp = child2ArrayTemp.concat(fatherArray.slice(ca, cb));
+        child2ArrayTemp = child2ArrayTemp.concat(motherArray.slice(cb, len));
+
+        let children = [];
+        children.push(child1ArrayTemp);
+        children.push(child2ArrayTemp);
+
+        return children;
     };
 
     this.getNotTaken = function (source, taken) {
