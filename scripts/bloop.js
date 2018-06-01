@@ -8,7 +8,7 @@ let Bloop = function(position, dna) {
 
     sim.mutationRate = 0.25;
 
-    this.bodyColorO = sim.color(120, 200, 255);
+    this.bodyColorO = sim.color(0,255,255);
     this.outlineColor = sim.color(20);
 
     this.r = sim.random(100, 255);
@@ -20,7 +20,7 @@ let Bloop = function(position, dna) {
     this.acceleration = sim.createVector(0, 0);
 
     this.isAgro = false;
-
+ 
     this.brain = ENCOG.BasicNetwork.create([
         ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),6,1),
         ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(),4,1),
@@ -46,7 +46,7 @@ let Bloop = function(position, dna) {
     };
 
     this.updateStats = function() {
-        this.health = this.health - (this.isAgro ? 100 : 1);
+        this.health = this.health - (this.isAgro ? 10 : 1);
         this.age += 0.005;
         this.size = this.age < 18 ? this.age : 18;
     };
@@ -83,9 +83,9 @@ let Bloop = function(position, dna) {
             this.applyForce(outVector);
             // this.velocity = outVector;
 
-            this.r = sim.map(input[2], -1, 1, 80, 255);
-            this.g = sim.map(sim.map(this.health > 600 ? 600 : this.health, 0, 600, -1, 1), -1, 1, 80, 255);
-            this.b = sim.map(input[5], -1, 1, 80, 255);
+            this.r = sim.map(sim.map(this.health > 600 ? 600 : this.health, 0, 600, -1, 1), -1, 1, 80, 255);
+            this.g = sim.map(input[5], -1, 1, 80, 100);
+            this.b = sim.map(input[2], -1, 1, 80, 255);
 
             this.isAgro = output[3] > 0.8;
 
@@ -140,8 +140,13 @@ let Bloop = function(position, dna) {
                 this.health += Food.prototype.health * 4 * absorbtionRate;
                 this.nearestBloop.health -= Food.prototype.health * 6 * absorbtionRate;
             }
+
             if(this.nearestBloop.isAgro) {
                 this.bodyColor = sim.color(200, 80, 80);
+            } else {
+                // let absorbtionRate = (this.age < 18 ? this.age  * 0.2 : 18  * 0.5);
+                // this.health += Food.prototype.health * 10 * absorbtionRate;
+                // this.nearestBloop.health -= Food.prototype.health * 6 * absorbtionRate;
             }
         }
         

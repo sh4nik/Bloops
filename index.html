@@ -63,10 +63,50 @@
             padding-right: 20px;
         }
 
+        .byte {
+            width: 50px;
+            /*border: 2px solid #333;*/
+            height: 10px;
+            /*border-radius: 26px;*/
+            padding: 8px;
+        }
+
+        .byte .seperator {
+            margin: 1px;
+            float: left;
+            width: calc(100% / 18);
+            height: 160%;
+            background: #b666ff;
+            margin-top: -2px;
+        }
+
+        .byte .bit {
+            margin: 1px;
+            float: left;
+            width: calc(100% / 18);
+            height: 100%;
+            background: #666;
+        }
+
     </style>
   </head>
   <body>
-      <div id="menu" onclick="toggleMenu()">?
+      <div id="menu" onclick="toggleMenu()">
+          
+        <div class="byte">
+            <div class="seperator"></div>
+            
+            <div class="bit"></div>
+            <div class="bit"></div>
+            <div class="bit"></div>
+            <div class="bit" style="background: #00ffcc;"></div>
+            <div class="bit"></div>
+            <div class="bit"></div>
+            <div class="bit" style="background: #00ffcc;"></div>
+
+            <div class="seperator"></div>
+        </div>
+
           <div id="menu-content">
               <h2>Welcome to  bloops.xyz!</h2>
                 Bloops are colorful autonomous agents with the ability to live and interact with their environment.</br>

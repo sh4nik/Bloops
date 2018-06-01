@@ -3,7 +3,7 @@ let simulation = function(sim) {
     sim.bloopCount = 50;
     sim.foodCount = 400;
 
-    sim.matingRate = 0.002;
+    sim.matingRate = 0.04;
     sim.maxBloops = 50;
     sim.minBloops = 5;
 
@@ -19,9 +19,12 @@ let simulation = function(sim) {
         let cnv = sim.createCanvas(sim.windowWidth, sim.windowHeight);
         cnv.parent('simulation-container');
 
-        //let sample = [0.5017004960682581,0.4999151725818134,-0.21982131176508535,0.8780605218096813,-0.718896656756141,0.23681382334094758,0.571297988040079,0.7822120239895809,-0.31783578377620936,-0.9268051158477153,-0.03139014230904902,-0.7932834321930131,-0.5130215435545438,0.04298574456212112,-0.14825313420381026,-0.6526571826519234,-0.1425064366777833,0.24480572375367515,0.4874118744706144,-0.5996833989979367,-0.3424190870313324,0.4516849397049625,0.6185517184180576,-0.038386214824165155,-0.25261307725789806,0.09604114886817472,0.016431557072968506,-0.13648544851782285,0.871076945313479,-0.8326957780023965,-0.6378786307934274,0.5721567135631815,-0.6058321978607561,-0.1791019413447863,-0.03173954939786361,0.11142203884347168,-0.224505064110458,0.11716451999687916,-0.9669753498083344,0.03776429662007619,0.42723076731714293,0.8183111581997462,-0.4344684718616625,0.9891268063996517,0.11797680207426753,0.937633240799876,0.8319832123161532,-0.48186818960806166,0.07871552014948557,0.8154671939832405,-0.5037546020808432,-0.33179402304731687,-0.5062870675044508,-0.024474755260791792,0.3862169946678402,-0.7868782619549917,-0.9254026421127928,0.1598389040492636,0.40701574895198567,0.31824810524138014,0.029804761314772055,-0.9302687623523691,0.5729412428810146,0.7010054212011245,-0.34584633756355254,0.19040109230960933,0.9430654333793003,-0.3570411299066576,-0.7915552215020689,-0.7107510001786044,-0.5379862611459867,-0.3460418690455205,0.33926269849657587,0.5568726255771526,0.6157839214364378,-0.505928479660783,-0.5162474679877778,0.16674816806112558,0.11157924442505429,0.9458426463590999,0.5321205509773104,-0.7903652453247174,-0.38596077657207983,0.8784737069392068,0.4933977459026613,0.5426456626067626,0.013967594716254528,0.10295102296532743,0.412198982197435,0.1665052074847786,-0.1737268922611963,0.6478376381641602,0.7371576565330304,0.9053496933339344,-0.4006667396301582,-0.4366949887491609,-0.8210640408970233,0.09611579426783701,0.9083963625977778,-0.03743128039140187];
+        sim.frameRate(30);
+
+
+        let sample = null; //[-0.8, -0.1, -0.1, -0.9, 0.7, 0.1, -1, 0.9, -1, -0.3, -1, -0.5, -0.8, -0.7, -0.9, 0.6, -0.2, 0.4, -0, -0, 1, -0.3, -0.3, 0.6, -0.5, -0.9, -0.7, 0.1, 0.6, -1, -0, -0.1, 0.6, -0.5, -0.2, -0.9, -1, -0.7, 0.6, 0.4, -0.6, 0.7, 0.2, -0.4, -0.1, -0, -0.6, -0.5];
         for(let i = 0; i < sim.bloopCount; i++) {
-            sim.bloops.push(new Bloop(new p5.Vector(sim.random(sim.width), sim.random(sim.height))));
+            sim.bloops.push(new Bloop(new p5.Vector(sim.random(sim.width), sim.random(sim.height)), sample));
         }
 
         for(let i = 0; i < sim.foodCount; i++) {
@@ -40,6 +43,7 @@ let simulation = function(sim) {
             sim.bloops.push(new Bloop(new p5.Vector(sim.random(sim.width), sim.random(sim.height))));
         }
 
+        if (sim.food.length < 50)
         for (let i = sim.food.length; i < sim.foodCount; i++) {
             sim.food.push(new Food(new p5.Vector(sim.random(sim.width), sim.random(sim.height))));
         }
@@ -95,18 +99,18 @@ let simulation = function(sim) {
     sim.drawFood = function(foodParticle) {
         sim.noStroke();
         if(foodParticle.isPoison) {
-            sim.fill(250, 80, 200, 1.7);
+            sim.fill(182, 102, 255, 1.7);
             sim.ellipse(foodParticle.position.x, foodParticle.position.y, foodParticle.size * 10, foodParticle.size * 10);
         } else {
-            sim.fill(80, 150, 140, 1);
+            sim.fill(0, 255, 204, 1);
             sim.ellipse(foodParticle.position.x, foodParticle.position.y, foodParticle.size * 30, foodParticle.size * 30);
         }
 
         sim.stroke(5);
         if(foodParticle.isPoison) {
-            sim.fill(200, 80, 200);
+            sim.fill(182, 102, 255, 150);
         } else {
-            sim.fill(80, 250, 240);
+            sim.fill(0, 255, 204, 150);
         }
 
         sim.ellipse(foodParticle.position.x, foodParticle.position.y, foodParticle.size, foodParticle.size);
@@ -153,6 +157,50 @@ let simulation = function(sim) {
         sim.strokeWeight(bloop.size / 8);
         sim.fill(bloop.r, bloop.g, bloop.b);
         sim.rect(-bloop.size / 4, 0, bloop.size / 2, bloop.size / 2);
+
+        var bitmap = [
+            [1, 0, 0, 0, 0, 0, 0, 1],
+            [0, 1, 0, 0, 0, 0, 1, 1], 
+            [0, 0, 1, 0, 0, 1, 1, 0], 
+            [0, 0, 0, 1, 1, 1, 0, 0], 
+            [0, 0, 0, 1, 1, 0, 0, 0], 
+            [0, 0, 1, 1, 0, 1, 0, 0], 
+            [0, 1, 1, 0, 0, 0, 1, 0], 
+            [1, 1, 0, 0, 0, 0, 0, 1] 
+        ];
+
+        // var bitmap = [
+        //     [1, 1, 1, 1, 1, 1, 1, 1],
+        //     [1, 1, 1, 1, 1, 1, 1, 1],
+        //     [1, 1, 1, 1, 1, 1, 1, 1],
+        //     [1, 1, 1, 1, 1, 1, 1, 1],
+        //     [1, 1, 1, 1, 1, 1, 1, 1],
+        //     [1, 1, 1, 1, 1, 1, 1, 1],
+        //     [1, 1, 1, 1, 1, 1, 1, 1],
+        //     [1, 1, 1, 1, 1, 1, 1, 1]
+        // ];
+
+        // let cellSize = bloop.size / 16;
+
+        // for (let x = 0; x < bitmap.length; x++) {
+
+        //     let row = bitmap[x];
+
+        //     for (let y = 0; y < row.length; y++) {
+
+        //         let cell = bitmap[x][y];
+
+        //         if (cell) {
+        //             sim.fill(0);
+        //             sim.rect((-bloop.size / 4) + (cellSize * x), cellSize * y, cellSize, cellSize);
+        //         } else {
+        //             sim.fill(bloop.r, bloop.g, bloop.b);
+        //             sim.rect((-bloop.size / 4) + (cellSize * x), cellSize * y, cellSize, cellSize);
+        //         }
+
+        //     }
+
+        // }
 
 
         sim.pop();
