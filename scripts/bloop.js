@@ -51,6 +51,14 @@ let Bloop = function(position, dna) {
         this.size = this.age < 18 ? this.age : 18;
     };
 
+    this.clicked = function () {
+        let d = sim.dist(sim.mouseX, sim.mouseY, this.position.x, this.position.y);
+        if (d < this.size * 2) {
+            console.log(this);
+            return true;
+        }
+    };
+
     this.calculateNext = function() {
 
         let nearestFoodVector;

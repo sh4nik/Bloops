@@ -13,6 +13,8 @@ let simulation = function(sim) {
     Bloop.sim = sim;
     Food.sim = sim;
 
+    sim.selectedBloop = null;
+    sim.selectionColor = '#ff9999';
 
 
     sim.setup = function() {
@@ -56,7 +58,13 @@ let simulation = function(sim) {
         while (i--) {
             let bloop = sim.bloops[i];
             if(bloop.health > 0) {
-                bloop.update();
+
+                if(bloop.size > 12.1) {
+                    bloop.update();
+                } else {
+                    bloop.updateStats();
+                }
+                
                 sim.drawBloop(bloop);
             } else {
                 sim.food.push(new Food(new p5.Vector(sim.bloops[i].position.x, sim.bloops[i].position.y), false));
@@ -96,11 +104,21 @@ let simulation = function(sim) {
         return sim.bloops[index];
     };
 
+    sim.mousePressed = function() {
+        sim.selectedBloop = null;
+        sim.bloops.forEach(bloop => {
+            if(bloop.clicked()) {
+                sim.selectedBloop = bloop;
+                return;
+            }
+        });
+    };
+
     sim.drawFood = function(foodParticle) {
         sim.noStroke();
         if(foodParticle.isPoison) {
             sim.fill(182, 102, 255, 1.7);
-            sim.ellipse(foodParticle.position.x, foodParticle.position.y, foodParticle.size * 10, foodParticle.size * 10);
+            sim.ellipse(foodParticle.position.x, foodParticle.position.y, foodParticle.size * 30, foodParticle.size * 30);
         } else {
             sim.fill(0, 255, 204, 1);
             sim.ellipse(foodParticle.position.x, foodParticle.position.y, foodParticle.size * 30, foodParticle.size * 30);
@@ -123,8 +141,18 @@ let simulation = function(sim) {
         var angle = bloop.velocity.heading() + sim.PI / 2;
         sim.rotate(angle);
 
-        sim.stroke(bloop.outlineColor);
         sim.strokeWeight(bloop.size / 8);
+
+        if (sim.selectedBloop && sim.selectedBloop === bloop) {
+            sim.stroke(sim.selectionColor);
+            sim.fill(0, 0, 0, 0);
+            sim.ellipse(0, 0, bloop.size * 3.5, bloop.size * 3.5);
+            sim.stroke(100, 100, 100);
+            sim.ellipse(0, 0, bloop.size * 3, bloop.size * 3);
+        }
+
+        sim.stroke(bloop.outlineColor);
+        
         if (bloop === sim.bloops[0]) {
             sim.fill(200, 100, 250);
         } else {
@@ -132,6 +160,9 @@ let simulation = function(sim) {
         }
         
         sim.ellipse(0, 0, bloop.size, bloop.size);
+
+        if (bloop.size > 12.1) {
+
         sim.line(0, 0, 0, -bloop.size / 2);
 
         if(bloop.isAgro) {
@@ -201,6 +232,8 @@ let simulation = function(sim) {
         //     }
 
         // }
+
+        }
 
 
         sim.pop();
