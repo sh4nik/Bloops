@@ -79,7 +79,6 @@ let Bloop = function(position, dna) {
                 nearestBloopVector.x,
                 nearestBloopVector.y,
                 this.nearestBloop.isAgro ? 1 : -1
-                // sim.map(this.health > 600 ? 600 : this.health, 0, 600, -1, 1)
             ];
 
             let output = [];
@@ -89,7 +88,6 @@ let Bloop = function(position, dna) {
             let outVector = sim.createVector(output[0], output[1]);
             outVector.setMag(output[2]);
             this.applyForce(outVector);
-            // this.velocity = outVector;
 
             this.r = sim.map(sim.map(this.health > 600 ? 600 : this.health, 0, 600, -1, 1), -1, 1, 80, 255);
             this.g = sim.map(input[5], -1, 1, 80, 100);
@@ -151,10 +149,6 @@ let Bloop = function(position, dna) {
 
             if(this.nearestBloop.isAgro) {
                 this.bodyColor = sim.color(200, 80, 80);
-            } else {
-                // let absorbtionRate = (this.age < 18 ? this.age  * 0.2 : 18  * 0.5);
-                // this.health += Food.prototype.health * 10 * absorbtionRate;
-                // this.nearestBloop.health -= Food.prototype.health * 6 * absorbtionRate;
             }
         }
         
@@ -224,17 +218,6 @@ let Bloop = function(position, dna) {
         children.push(child2ArrayTemp);
 
         return children;
-    };
-
-    this.getNotTaken = function (source, taken) {
-        for(var i=0;i<source.length;i++) {
-            var trial = source[i];
-            if( taken[trial] != true ) {
-                taken[trial] = true;
-                return trial;
-            }
-        }
-        return -1;
     };
 
 

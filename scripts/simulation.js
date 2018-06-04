@@ -24,7 +24,7 @@ let simulation = function(sim) {
         sim.frameRate(30);
 
 
-        let sample = null; //[-0.8, -0.1, -0.1, -0.9, 0.7, 0.1, -1, 0.9, -1, -0.3, -1, -0.5, -0.8, -0.7, -0.9, 0.6, -0.2, 0.4, -0, -0, 1, -0.3, -0.3, 0.6, -0.5, -0.9, -0.7, 0.1, 0.6, -1, -0, -0.1, 0.6, -0.5, -0.2, -0.9, -1, -0.7, 0.6, 0.4, -0.6, 0.7, 0.2, -0.4, -0.1, -0, -0.6, -0.5];
+        let sample = [-0.8, -0.1, -0.1, -0.9, 0.7, 0.1, -1, 0.9, -1, -0.3, -1, -0.5, -0.8, -0.7, -0.9, 0.6, -0.2, 0.4, -0, -0, 1, -0.3, -0.3, 0.6, -0.5, -0.9, -0.7, 0.1, 0.6, -1, -0, -0.1, 0.6, -0.5, -0.2, -0.9, -1, -0.7, 0.6, 0.4, -0.6, 0.7, 0.2, -0.4, -0.1, -0, -0.6, -0.5];
         for(let i = 0; i < sim.bloopCount; i++) {
             sim.bloops.push(new Bloop(new p5.Vector(sim.random(sim.width), sim.random(sim.height)), sample));
         }
@@ -117,7 +117,7 @@ let simulation = function(sim) {
     sim.drawFood = function(foodParticle) {
         sim.noStroke();
         if(foodParticle.isPoison) {
-            sim.fill(182, 102, 255, 1.7);
+            sim.fill(182, 102, 255, 2);
             sim.ellipse(foodParticle.position.x, foodParticle.position.y, foodParticle.size * 30, foodParticle.size * 30);
         } else {
             sim.fill(0, 255, 204, 1);
@@ -189,6 +189,12 @@ let simulation = function(sim) {
         sim.fill(bloop.r, bloop.g, bloop.b);
         sim.rect(-bloop.size / 4, 0, bloop.size / 2, bloop.size / 2);
 
+    }
+
+        sim.pop();
+    };
+
+    sim.drawSymbol = function(bloop) {
         var bitmap = [
             [1, 0, 0, 0, 0, 0, 0, 1],
             [0, 1, 0, 0, 0, 0, 1, 1], 
@@ -200,43 +206,20 @@ let simulation = function(sim) {
             [1, 1, 0, 0, 0, 0, 0, 1] 
         ];
 
-        // var bitmap = [
-        //     [1, 1, 1, 1, 1, 1, 1, 1],
-        //     [1, 1, 1, 1, 1, 1, 1, 1],
-        //     [1, 1, 1, 1, 1, 1, 1, 1],
-        //     [1, 1, 1, 1, 1, 1, 1, 1],
-        //     [1, 1, 1, 1, 1, 1, 1, 1],
-        //     [1, 1, 1, 1, 1, 1, 1, 1],
-        //     [1, 1, 1, 1, 1, 1, 1, 1],
-        //     [1, 1, 1, 1, 1, 1, 1, 1]
-        // ];
-
-        // let cellSize = bloop.size / 16;
-
-        // for (let x = 0; x < bitmap.length; x++) {
-
-        //     let row = bitmap[x];
-
-        //     for (let y = 0; y < row.length; y++) {
-
-        //         let cell = bitmap[x][y];
-
-        //         if (cell) {
-        //             sim.fill(0);
-        //             sim.rect((-bloop.size / 4) + (cellSize * x), cellSize * y, cellSize, cellSize);
-        //         } else {
-        //             sim.fill(bloop.r, bloop.g, bloop.b);
-        //             sim.rect((-bloop.size / 4) + (cellSize * x), cellSize * y, cellSize, cellSize);
-        //         }
-
-        //     }
-
-        // }
-
+        let cellSize = bloop.size / 16;
+        for (let x = 0; x < bitmap.length; x++) {
+            let row = bitmap[x];
+            for (let y = 0; y < row.length; y++) {
+                let cell = bitmap[x][y];
+                if (cell) {
+                    sim.fill(0);
+                    sim.rect((-bloop.size / 4) + (cellSize * x), cellSize * y, cellSize, cellSize);
+                } else {
+                    sim.fill(bloop.r, bloop.g, bloop.b);
+                    sim.rect((-bloop.size / 4) + (cellSize * x), cellSize * y, cellSize, cellSize);
+                }
+            }
         }
-
-
-        sim.pop();
     };
 
 };
