@@ -1,6 +1,6 @@
 let simulation = function(sim) {
 
-    sim.bloopCount = 500;
+    sim.bloopCount = 50;
     sim.foodCount = 400;
 
     sim.matingRate = 0.04;
@@ -156,7 +156,7 @@ let simulation = function(sim) {
         sim.stroke(bloop.outlineColor);
         
         if (bloop === sim.bloops[0]) {
-            sim.fill(200, 100, 250);
+            sim.fill(182, 102, 255);
         } else {
             sim.fill(bloop.bodyColor);
         }
