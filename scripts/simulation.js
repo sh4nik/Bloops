@@ -1,6 +1,6 @@
 let simulation = function(sim) {
 
-    sim.bloopCount = 50;
+    sim.bloopCount = 500;
     sim.foodCount = 400;
 
     sim.matingRate = 0.04;
@@ -36,6 +36,8 @@ let simulation = function(sim) {
 
     sim.draw = function() {
         sim.background(30);
+
+        console.log(sim.frameRate());
 
         sim.bloops = sim.bloops.sort(function(a, b){
             return b.health - a.health;

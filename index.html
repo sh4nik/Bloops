@@ -46,9 +46,6 @@
             cursor: pointer;
             font-family: monospace;
         }
-        #simulation-container {
-            
-        }
         #menu-content {
             display: none;
             font-size: 12px;
@@ -65,9 +62,7 @@
 
         .byte {
             width: 50px;
-            /*border: 2px solid #333;*/
             height: 10px;
-            /*border-radius: 26px;*/
             padding: 8px;
         }
 
@@ -91,7 +86,7 @@
     </style>
   </head>
   <body>
-      <div id="menu" onclick="toggleMenu()">
+      <div id="menu">
           
         <div class="byte">
             <div class="seperator"></div>
@@ -115,7 +110,7 @@
                 </br>
 
                 <h3>Food:</h3>
-                - Blue food particles add health while pink poison particles reduce health</br>
+                - Green food particles add health while purple poison particles reduce health</br>
 
                 </br>
 
@@ -123,8 +118,8 @@
 
                 - <strong>Head</strong>  :: Gets darker as health reduces and lighter as health is gained</br>
                 - <strong>Fangs</strong> :: Visible when in agro mode</br>
-                - <strong>Body</strong>  :: Normally blue. Grey if born with a mutated gene. Red when being eaten by another Bloop. The healthiest Bloop at any time is highlighted in purple.</br>
-                - <strong>Expression Color</strong> :: Red: High if nearest food is poison, Green: Relative to health, Blue: High if nearest Bloop is agro</br>
+                - <strong>Body</strong>  :: Normally green. Grey if born with a mutated gene. Red when being eaten by another Bloop. The healthiest Bloop at any time is highlighted in purple.</br>
+                - <strong>Expression Color</strong> :: Red: Relative to health, Blue: High if nearest food is poison</br>
                 - <strong>Tail</strong>  :: Expands relative to speed</br>
                 
                 </br>
