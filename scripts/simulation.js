@@ -52,6 +52,8 @@ let simulation = function(sim) {
         let sample = [
             omnivour,
             herbivour,
+            herbivour,
+            herbivour,
             herbivour
         ];
         
