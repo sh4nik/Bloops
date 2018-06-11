@@ -45,6 +45,24 @@
             padding: 1px 8px;
             cursor: pointer;
             font-family: monospace;
+            z-index: 8;
+        }
+        #b1 {
+            background: #111;
+            border: solid 2px #333;
+            position: absolute;
+            top: 70px;
+            left: 10px;
+            border-radius: 5px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 10px;
+            font-weight: bold;
+            color: #50faf0;
+            padding: 1px 8px;
+            cursor: pointer;
+            font-family: monospace;
+            z-index: 0;
         }
         #menu-content {
             display: none;
@@ -171,6 +189,9 @@
 
                 <h2>Enjoy!</h2>
           </div>
+     </div>
+     <div id="b1" onclick="sim.changeTheme()">
+         Change<br/>Theme
      </div>
      <div id="simulation-container"></div>
   </body>

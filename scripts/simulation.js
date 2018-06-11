@@ -16,6 +16,29 @@ let simulation = function(sim) {
     sim.selectedBloop = null;
     sim.selectionColor = '#ff9999';
 
+    let themes = {
+        dark: {
+            background: 30,
+            foodGlowAlpha: 2,
+            foodGlowSize: 30,
+            tailColor: 200,
+            tailAlpha: 40
+        },
+        light: {
+            background: 200,
+            foodGlowAlpha: 70,
+            foodGlowSize: 3,
+            tailColor: 20,
+            tailAlpha: 100
+        }
+    };
+
+    sim.theme = themes['light'];
+
+    sim.changeTheme = function() {
+        sim.theme = sim.theme === themes['light'] ? themes['dark'] : themes['light'];
+    };
+
 
     sim.setup = function() {
         let cnv = sim.createCanvas(sim.windowWidth, sim.windowHeight);
@@ -23,10 +46,19 @@ let simulation = function(sim) {
 
         sim.frameRate(30);
 
+        let omnivour = [-0.8, -0, 0.7, 0.6, 0.6, -0, -0.5, -1, -0.5, -0.2, -0, 0.7, 0.7, 0.7, -0, -0, -0.5, -0.1, -1, 0.6, 0.1, -1, -0.3, -0, -0.5, -0, -1, -0.5, -0, -0.5, 0.7, -0, -1, -0.5, 0.2, -0.7, 0.1, -0.4, 0.1, -0, 0.1, -0.8, 0.1, -0.5, -0, 0.6, -0.5, -1];
+        let herbivour = [-0.8, -0.1, -0.1, -0.9, 0.7, 0.1, -1, 0.9, -1, -0.3, -1, -0.5, -0.8, -0.7, -0.9, 0.6, -0.2, 0.4, -0, -0, 1, -0.3, -0.3, 0.6, -0.5, -0.9, -0.7, 0.1, 0.6, -1, -0, -0.1, 0.6, -0.5, -0.2, -0.9, -1, -0.7, 0.6, 0.4, -0.6, 0.7, 0.2, -0.4, -0.1, -0, -0.6, -0.5];
 
-        let sample = [-0.8, -0.1, -0.1, -0.9, 0.7, 0.1, -1, 0.9, -1, -0.3, -1, -0.5, -0.8, -0.7, -0.9, 0.6, -0.2, 0.4, -0, -0, 1, -0.3, -0.3, 0.6, -0.5, -0.9, -0.7, 0.1, 0.6, -1, -0, -0.1, 0.6, -0.5, -0.2, -0.9, -1, -0.7, 0.6, 0.4, -0.6, 0.7, 0.2, -0.4, -0.1, -0, -0.6, -0.5];
-        for(let i = 0; i < sim.bloopCount; i++) {
-            sim.bloops.push(new Bloop(new p5.Vector(sim.random(sim.width), sim.random(sim.height)), sample));
+        let sample = [
+            omnivour,
+            herbivour,
+            herbivour
+        ];
+        
+        for(let j = 0; j < sample.length; j++) {
+            for(let i = 0; i < sim.bloopCount / sample.length; i++) {
+                sim.bloops.push(new Bloop(new p5.Vector(sim.random(sim.width), sim.random(sim.height)), sample[j]));
+            }
         }
 
         for(let i = 0; i < sim.foodCount; i++) {
@@ -35,9 +67,9 @@ let simulation = function(sim) {
     };
 
     sim.draw = function() {
-        sim.background(30);
+        sim.background(sim.theme.background);
 
-        console.log(sim.frameRate());
+        // console.log(sim.frameRate());
 
         sim.bloops = sim.bloops.sort(function(a, b){
             return b.health - a.health;
@@ -119,11 +151,11 @@ let simulation = function(sim) {
     sim.drawFood = function(foodParticle) {
         sim.noStroke();
         if(foodParticle.isPoison) {
-            sim.fill(182, 102, 255, 2);
-            sim.ellipse(foodParticle.position.x, foodParticle.position.y, foodParticle.size * 30, foodParticle.size * 30);
+            sim.fill(182, 102, 255, sim.theme.foodGlowAlpha);
+            sim.ellipse(foodParticle.position.x, foodParticle.position.y, foodParticle.size * sim.theme.foodGlowSize, foodParticle.size * sim.theme.foodGlowSize);
         } else {
-            sim.fill(0, 255, 204, 1);
-            sim.ellipse(foodParticle.position.x, foodParticle.position.y, foodParticle.size * 30, foodParticle.size * 30);
+            sim.fill(0, 255, 204, sim.theme.foodGlowAlpha);
+            sim.ellipse(foodParticle.position.x, foodParticle.position.y, foodParticle.size * sim.theme.foodGlowSize, foodParticle.size * sim.theme.foodGlowSize);
         }
 
         sim.stroke(5);
@@ -170,9 +202,12 @@ let simulation = function(sim) {
         if(bloop.isAgro) {
             sim.fill(20);
             sim.stroke(255, 80, 80);
+            sim.strokeWeight(bloop.size / 4);
             sim.triangle(-bloop.size / 4, -bloop.size / 2, 0, -bloop.size / 2, -bloop.size / 4, -bloop.size / 5 * 3);
             sim.triangle(bloop.size / 4, -bloop.size / 2, 0, -bloop.size / 2, bloop.size / 4, -bloop.size / 5 * 3);
         }
+
+        sim.strokeWeight(bloop.size / 8);
 
         sim.stroke(bloop.outlineColor);
 
@@ -182,7 +217,7 @@ let simulation = function(sim) {
 
 
         sim.noStroke();
-        sim.fill(200, 40);
+        sim.fill(sim.theme.tailColor, sim.theme.tailAlpha);
         let tailScale = bloop.velocity.mag() * bloop.maxSpeed * 0.55;
         sim.triangle(0, 0, -bloop.size / 2 * tailScale, tailScale * bloop.size, bloop.size / 2 * tailScale, tailScale * bloop.size);
 
