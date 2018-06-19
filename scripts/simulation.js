@@ -18,9 +18,9 @@ let simulation = function(sim) {
 
     let themes = {
         dark: {
-            background: 30,
-            foodGlowAlpha: 2,
-            foodGlowSize: 30,
+            background: 10,
+            foodGlowAlpha: 70,
+            foodGlowSize: 3,
             tailColor: 200,
             tailAlpha: 40
         },
@@ -44,9 +44,8 @@ let simulation = function(sim) {
     };
 
     sim.clone = function() {
-        sim.bloops.push(new Bloop(new p5.Vector(20, 45), sim.selectedBloop.brain.weights));
+        !sim.selectedBloop || sim.bloops.push(new Bloop(new p5.Vector(20, 45), sim.selectedBloop.brain.weights));
     };
-
 
     sim.setup = function() {
         let cnv = sim.createCanvas(sim.windowWidth, sim.windowHeight);
