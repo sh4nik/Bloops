@@ -30,45 +30,35 @@
         canvas {
             display:block;
         }
-        #menu {
-            background: #111;
-            border: solid 2px #333;
+        #m {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            border-radius: 5px;
-            text-align: left;
-            vertical-align: middle;
-            font-size: 26px;
-            font-weight: bold;
-            color: #50faf0;
-            padding: 1px 8px;
-            cursor: pointer;
-            font-family: monospace;
-            z-index: 8;
+            top: 0px;
         }
-        #b1 {
+        .b {
+            user-select: none;
             background: #111;
-            border: solid 2px #333;
-            position: absolute;
-            top: 70px;
-            left: 10px;
-            border-radius: 5px;
             text-align: center;
             vertical-align: middle;
-            font-size: 10px;
+            font-size: 22px;
             font-weight: bold;
             color: #50faf0;
             padding: 1px 8px;
             cursor: pointer;
             font-family: monospace;
-            z-index: 0;
+            float:left;
+            border-right: #00c0b4 3px solid;
+        }
+        .b:hover {
+            color: #08ff98;
+        }
+        .b:active {
+            color: #4ab589;
         }
         #menu-content {
             display: none;
             font-size: 12px;
             font-weight: normal;
-            opacity: 0.5;
+            opacity: 0.8;
         }
         #menu:hover #menu-content {
             display: block;
@@ -76,6 +66,12 @@
             height:80vh;
             overflow-y: scroll;
             padding-right: 20px;
+            position:absolute;
+            top: 28px;
+            left: 0px;
+            z-index: 10;
+            background: #000;
+            text-align: left;
         }
 
         .byte {
@@ -104,94 +100,102 @@
     </style>
   </head>
   <body>
-      <div id="menu">
-          
-        <div class="byte">
-            <div class="seperator"></div>
+      <div id="m">
+        <div id="menu" class="b">
             
-            <div class="bit"></div>
-            <div class="bit"></div>
-            <div class="bit"></div>
-            <div class="bit" style="background: #00ffcc;"></div>
-            <div class="bit"></div>
-            <div class="bit"></div>
-            <div class="bit" style="background: #00ffcc;"></div>
+            <div class="byte">
+                <div class="seperator"></div>
+                
+                <div class="bit"></div>
+                <div class="bit"></div>
+                <div class="bit"></div>
+                <div class="bit" style="background: #00ffcc;"></div>
+                <div class="bit"></div>
+                <div class="bit"></div>
+                <div class="bit" style="background: #00ffcc;"></div>
 
-            <div class="seperator"></div>
+                <div class="seperator"></div>
+            </div>
+
+            <div id="menu-content">
+                <h2>Welcome to  bloops.xyz!</h2>
+                    Bloops are colorful autonomous agents with the ability to live and interact with their environment.</br>
+                    Their brains consist of a simple Neural Network which is evolved over time using a continuous Genetic Algorithm.</br>
+
+                    </br>
+
+                    <h3>Food:</h3>
+                    - Green food particles add health while purple poison particles reduce health</br>
+
+                    </br>
+
+                    <h3>Physical Appearance:</h3>
+
+                    - <strong>Head</strong>  :: Gets darker as health reduces and lighter as health is gained</br>
+                    - <strong>Fangs</strong> :: Visible when in agro mode</br>
+                    - <strong>Body</strong>  :: Normally green. Grey if born with a mutated gene. Red when being eaten by another Bloop. The healthiest Bloop at any time is highlighted in purple.</br>
+                    - <strong>Expression Color</strong> :: Red: Relative to health, Blue: High if nearest food is poison</br>
+                    - <strong>Tail</strong>  :: Expands relative to speed</br>
+                    
+                    </br>
+
+                    <h3>Agro mode:</h3>
+                    - Does not consume colliding food or poison</br>
+                    - Absorbs health from colliding Bloops</br>
+                    - Health drains faster than normal</br>
+
+                    </br>
+
+                    <h3>Brain Function:</h3>
+
+                    Inputs</br>
+                    - X of desired vector to closest food</br>
+                    - Y of desired vector to closest food</br>
+                    - Is closest food poisonous?</br>
+                    - X of desired vector to closest Bloop</br>
+                    - Y of desired vector to closest Bloop</br>
+                    - Is closest Bloop agro?</br>
+                    
+                    </br>
+
+                    Outputs</br>
+                    - X of steering vector</br>
+                    - Y of steering vector</br>
+                    - Magnitude of steering vector</br>
+                    - Should I be agro?</br>
+                    
+                    </br>
+
+                    <h3>Mating:</h3>
+                    - At any moment each Bloop has a predefined chance to mate and create offspring</br>
+                    - Offspring will be created as a clone of itself or by crossing genes with a selected Bloop</br>
+                    - A Bloop will be selected for mating based on a probability proportionate to its health</br>
+                    - The genes of any offspring could be mutated based on a predefined probability</br>
+
+                    </br>
+
+                    <h3>Population:</h3>
+                    - If the population drops below a certain number, random Bloops will be generated to introduce variety</br>
+                    - If the population rises above a certain number, mating will not be possible</br>
+
+                    </br>
+                    </br>
+
+                    <i>For more info contact sh4nik@gmail.com</i></br></br>
+                    <i>Special thanks to Daniel Shiffman</i></br></br>
+
+                    <h2>Enjoy!</h2>
+            </div>
         </div>
-
-          <div id="menu-content">
-              <h2>Welcome to  bloops.xyz!</h2>
-                Bloops are colorful autonomous agents with the ability to live and interact with their environment.</br>
-                Their brains consist of a simple Neural Network which is evolved over time using a continuous Genetic Algorithm.</br>
-
-                </br>
-
-                <h3>Food:</h3>
-                - Green food particles add health while purple poison particles reduce health</br>
-
-                </br>
-
-                <h3>Physical Appearance:</h3>
-
-                - <strong>Head</strong>  :: Gets darker as health reduces and lighter as health is gained</br>
-                - <strong>Fangs</strong> :: Visible when in agro mode</br>
-                - <strong>Body</strong>  :: Normally green. Grey if born with a mutated gene. Red when being eaten by another Bloop. The healthiest Bloop at any time is highlighted in purple.</br>
-                - <strong>Expression Color</strong> :: Red: Relative to health, Blue: High if nearest food is poison</br>
-                - <strong>Tail</strong>  :: Expands relative to speed</br>
-                
-                </br>
-
-                <h3>Agro mode:</h3>
-                - Does not consume colliding food or poison</br>
-                - Absorbs health from colliding Bloops</br>
-                - Health drains faster than normal</br>
-
-                </br>
-
-                <h3>Brain Function:</h3>
-
-                Inputs</br>
-                - X of desired vector to closest food</br>
-                - Y of desired vector to closest food</br>
-                - Is closest food poisonous?</br>
-                - X of desired vector to closest Bloop</br>
-                - Y of desired vector to closest Bloop</br>
-                - Is closest Bloop agro?</br>
-                
-                </br>
-
-                Outputs</br>
-                - X of steering vector</br>
-                - Y of steering vector</br>
-                - Magnitude of steering vector</br>
-                - Should I be agro?</br>
-                
-                </br>
-
-                <h3>Mating:</h3>
-                - At any moment each Bloop has a predefined chance to mate and create offspring</br>
-                - Offspring will be created as a clone of itself or by crossing genes with a selected Bloop</br>
-                - A Bloop will be selected for mating based on a probability proportionate to its health</br>
-                - The genes of any offspring could be mutated based on a predefined probability</br>
-
-                </br>
-
-                <h3>Population:</h3>
-                - If the population drops below a certain number, random Bloops will be generated to introduce variety</br>
-                - If the population rises above a certain number, mating will not be possible</br>
-
-                </br>
-                </br>
-
-                <i>For more info contact sh4nik@gmail.com</i></br></br>
-                <i>Special thanks to Daniel Shiffman</i></br></br>
-
-                <h2>Enjoy!</h2>
-          </div>
-     </div>
-     <div id="b1" onclick="sim.changeTheme()">
-         Change<br/>Theme
+        <div class="b" onclick="sim.changeTheme()">
+            Theme
+        </div>
+        <!--<div class="b" onclick="sim.extract(); event.stopPropagation();">
+            Extract
+        </div>-->
+        <div class="b" onclick="sim.clone(); event.stopPropagation();">
+            Clone
+        </div>
      </div>
      <div id="simulation-container"></div>
   </body>

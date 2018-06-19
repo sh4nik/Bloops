@@ -39,6 +39,14 @@ let simulation = function(sim) {
         sim.theme = sim.theme === themes['light'] ? themes['dark'] : themes['light'];
     };
 
+    sim.extract = function() {
+        console.log(sim.selectedBloop);
+    };
+
+    sim.clone = function() {
+        sim.bloops.push(new Bloop(new p5.Vector(20, 45), sim.selectedBloop.brain.weights));
+    };
+
 
     sim.setup = function() {
         let cnv = sim.createCanvas(sim.windowWidth, sim.windowHeight);
@@ -141,13 +149,15 @@ let simulation = function(sim) {
     };
 
     sim.mousePressed = function() {
-        sim.selectedBloop = null;
-        sim.bloops.forEach(bloop => {
-            if(bloop.clicked()) {
-                sim.selectedBloop = bloop;
-                return;
-            }
-        });
+        if(sim.mouseY > 27) {
+            sim.selectedBloop = null;
+            sim.bloops.forEach(bloop => {
+                if(bloop.clicked()) {
+                    sim.selectedBloop = bloop;
+                    return;
+                }
+            });
+        }
     };
 
     sim.drawFood = function(foodParticle) {
