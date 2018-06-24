@@ -34,6 +34,20 @@
             position: absolute;
             top: 0px;
         }
+        #extraction-zone {
+            background: #111;
+            margin-left: 20px;
+            border-left: 4px solid #b666ff;
+            border-right: 4px solid #b666ff;
+            float: left;
+            color: #00ffcc;
+            width: 268px;
+            word-wrap: break-word;
+            font-size: 7px;
+            height: 23px;
+            padding: 6px 4px 0px 4px;
+            overflow: hidden;
+        }
         .b {
             user-select: none;
             background: #111;
@@ -41,12 +55,12 @@
             vertical-align: middle;
             font-size: 22px;
             font-weight: bold;
-            color: #50faf0;
+            color: #00ffcc;
             padding: 1px 8px;
             cursor: pointer;
             font-family: monospace;
             float:left;
-            border-right: #00c0b4 3px solid;
+            border-right: #00ffcc 3px solid;
         }
         .b:hover {
             color: #08ff98;
@@ -190,12 +204,16 @@
         <div class="b" onclick="sim.changeTheme()">
             Theme
         </div>
-        <!--<div class="b" onclick="sim.extract(); event.stopPropagation();">
+        <div class="b" onclick="sim.extract(); event.stopPropagation();">
             Extract
-        </div>-->
+        </div>
         <div class="b" onclick="sim.clone(); event.stopPropagation();">
             Clone
         </div>
+        <!--<div class="b" onclick="sim.toggleFocus(); event.stopPropagation();">
+            Focus
+        </div>-->
+        <div id="extraction-zone"></div>
      </div>
      <div id="simulation-container"></div>
   </body>

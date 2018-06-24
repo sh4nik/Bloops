@@ -50,7 +50,7 @@ Bloop.prototype.update = function() {
 };
 
 Bloop.prototype.updateStats = function() {
-    this.health = this.health - (this.isAgro ? 10 : 1);
+    this.health = this.health - (this.isAgro ? 20 : 1);
     this.age += 0.005;
     this.size = this.age < 23 ? this.age : 23;
 };

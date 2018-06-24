@@ -16,10 +16,12 @@ let simulation = function(sim) {
     sim.selectedBloop = null;
     sim.selectionColor = '#ff9999';
 
+    sim.focussed = false;
+
     let themes = {
         dark: {
             background: 10,
-            foodGlowAlpha: 70,
+            foodGlowAlpha: 20,
             foodGlowSize: 3,
             tailColor: 200,
             tailAlpha: 40
@@ -40,11 +42,19 @@ let simulation = function(sim) {
     };
 
     sim.extract = function() {
-        console.log(sim.selectedBloop);
+        let dna = JSON.stringify(sim.selectedBloop.brain.weights.map(i=>i=Math.round( i * 10) / 10));
+        document.getElementById('extraction-zone').innerHTML = dna;
+
+        console.log();
     };
 
     sim.clone = function() {
-        !sim.selectedBloop || sim.bloops.push(new Bloop(new p5.Vector(20, 45), sim.selectedBloop.brain.weights));
+        !sim.selectedBloop || sim.bloops.push(new Bloop(new p5.Vector(357, 15), sim.selectedBloop.brain.weights));
+    };
+
+    sim.toggleFocus = function() {
+        sim.focussed = !sim.focussed;
+        !sim.focussed || sim.background(sim.theme.background);
     };
 
     sim.setup = function() {
@@ -55,11 +65,10 @@ let simulation = function(sim) {
 
         let omnivour = [-0.8, -0, 0.7, 0.6, 0.6, -0, -0.5, -1, -0.5, -0.2, -0, 0.7, 0.7, 0.7, -0, -0, -0.5, -0.1, -1, 0.6, 0.1, -1, -0.3, -0, -0.5, -0, -1, -0.5, -0, -0.5, 0.7, -0, -1, -0.5, 0.2, -0.7, 0.1, -0.4, 0.1, -0, 0.1, -0.8, 0.1, -0.5, -0, 0.6, -0.5, -1];
         let herbivour = [-0.8, -0.1, -0.1, -0.9, 0.7, 0.1, -1, 0.9, -1, -0.3, -1, -0.5, -0.8, -0.7, -0.9, 0.6, -0.2, 0.4, -0, -0, 1, -0.3, -0.3, 0.6, -0.5, -0.9, -0.7, 0.1, 0.6, -1, -0, -0.1, 0.6, -0.5, -0.2, -0.9, -1, -0.7, 0.6, 0.4, -0.6, 0.7, 0.2, -0.4, -0.1, -0, -0.6, -0.5];
+        let carnivour = [-0.8, -0.5, 0.7, 0.6, 0.6, -0, -0.5, -1, -0.5, -0.2, -0, 0.7, 0.7, 0.7, -0, -0.7, 0.1, -0.1, -1, 0.6, 0.1, -1, -0.3, -0, -0, -0, -1, -0.5, -0.5, -0.5, 0.7, -0, -1, -0.5, 0.2, -0, 0.1, -0.4, 0.1, -0, 0.1, -0.8, 0.1, -0, -0, 0.6, -0.5, -1];
 
         let sample = [
             omnivour,
-            herbivour,
-            herbivour,
             herbivour,
             herbivour
         ];
@@ -76,9 +85,14 @@ let simulation = function(sim) {
     };
 
     sim.draw = function() {
-        sim.background(sim.theme.background);
 
-        // console.log(sim.frameRate());
+        if(!sim.focussed) {
+            sim.background(sim.theme.background);
+        } else {
+            sim.noStroke();
+            sim.fill(182, 102, 255);
+            sim.ellipse(20, (sim.windowHeight - (sim.bloops[0].health / 20) % sim.windowHeight), 10, 10);
+        }
 
         sim.bloops = sim.bloops.sort(function(a, b){
             return b.health - a.health;
@@ -93,10 +107,11 @@ let simulation = function(sim) {
             sim.food.push(new Food(new p5.Vector(sim.random(sim.width), sim.random(sim.height))));
         }
 
-        sim.food.forEach(foodParticle => {
-            sim.drawFood(foodParticle);
-        });
-
+        if(!sim.focussed) {
+            sim.food.forEach(foodParticle => {
+                sim.drawFood(foodParticle);
+            });
+        }
         var i = sim.bloops.length;
         while (i--) {
             let bloop = sim.bloops[i];
@@ -107,8 +122,9 @@ let simulation = function(sim) {
                 } else {
                     bloop.updateStats();
                 }
-                
-                sim.drawBloop(bloop);
+                if(!sim.focussed) {
+                    sim.drawBloop(bloop);
+                }
             } else {
                 sim.food.push(new Food(new p5.Vector(sim.bloops[i].position.x, sim.bloops[i].position.y), false));
                 sim.bloops.splice(i, 1);
@@ -208,19 +224,20 @@ let simulation = function(sim) {
 
         if (bloop.size > 12.1) {
 
-        sim.line(0, 0, 0, -bloop.size / 2);
-
         if(bloop.isAgro) {
             sim.fill(20);
             sim.stroke(255, 80, 80);
+            sim.strokeWeight(bloop.size / 2);
+            sim.line(0, 0, 0, -bloop.size / 2);
             sim.strokeWeight(bloop.size / 4);
             sim.triangle(-bloop.size / 4, -bloop.size / 2, 0, -bloop.size / 2, -bloop.size / 4, -bloop.size / 5 * 3);
             sim.triangle(bloop.size / 4, -bloop.size / 2, 0, -bloop.size / 2, bloop.size / 4, -bloop.size / 5 * 3);
         }
+        
+        sim.stroke(bloop.outlineColor);
+        sim.line(0, 0, 0, -bloop.size / 2);
 
         sim.strokeWeight(bloop.size / 8);
-
-        sim.stroke(bloop.outlineColor);
 
         sim.fill(bloop.health > 45 ? bloop.health : sim.color(45));
         
