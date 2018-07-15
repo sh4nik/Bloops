@@ -8,7 +8,7 @@ let Bloop = function(position, dna) {
 
     sim.mutationRate = 0.25;
 
-    this.bodyColorO = sim.color(0,255,255);
+    this.bodyColorO = sim.color(69,236,253);
     this.outlineColor = sim.color(20);
 
     this.r = sim.random(100, 255);

@@ -44,8 +44,7 @@ let simulation = function(sim) {
     sim.extract = function() {
         let dna = JSON.stringify(sim.selectedBloop.brain.weights.map(i=>i=Math.round( i * 10) / 10));
         document.getElementById('extraction-zone').innerHTML = dna;
-
-        console.log();
+        document.getElementById('extraction-zone').style.display = 'block';
     };
 
     sim.clone = function() {
@@ -165,6 +164,7 @@ let simulation = function(sim) {
 
     sim.mousePressed = function() {
         if(sim.mouseY > 27) {
+            document.getElementById('extraction-zone').style.display = 'none';
             sim.selectedBloop = null;
             sim.bloops.forEach(bloop => {
                 if(bloop.clicked()) {
@@ -181,7 +181,7 @@ let simulation = function(sim) {
             sim.fill(182, 102, 255, sim.theme.foodGlowAlpha);
             sim.ellipse(foodParticle.position.x, foodParticle.position.y, foodParticle.size * sim.theme.foodGlowSize, foodParticle.size * sim.theme.foodGlowSize);
         } else {
-            sim.fill(0, 255, 204, sim.theme.foodGlowAlpha);
+            sim.fill(69,236,253, sim.theme.foodGlowAlpha);
             sim.ellipse(foodParticle.position.x, foodParticle.position.y, foodParticle.size * sim.theme.foodGlowSize, foodParticle.size * sim.theme.foodGlowSize);
         }
 
@@ -189,7 +189,7 @@ let simulation = function(sim) {
         if(foodParticle.isPoison) {
             sim.fill(182, 102, 255, 150);
         } else {
-            sim.fill(0, 255, 204, 150);
+            sim.fill(69,236,253, 150);
         }
 
         sim.ellipse(foodParticle.position.x, foodParticle.position.y, foodParticle.size, foodParticle.size);
