@@ -14,7 +14,7 @@ let simulation = function(sim) {
     Food.sim = sim;
 
     sim.selectedBloop = null;
-    sim.selectionColor = '#ff9999';
+    sim.selectionColor = '#F25278';
 
     sim.focussed = false;
 
@@ -27,7 +27,7 @@ let simulation = function(sim) {
             tailAlpha: 40
         },
         light: {
-            background: 200,
+            background: 240,
             foodGlowAlpha: 70,
             foodGlowSize: 3,
             tailColor: 20,
@@ -67,8 +67,6 @@ let simulation = function(sim) {
         let carnivour = [-0.8, -0.5, 0.7, 0.6, 0.6, -0, -0.5, -1, -0.5, -0.2, -0, 0.7, 0.7, 0.7, -0, -0.7, 0.1, -0.1, -1, 0.6, 0.1, -1, -0.3, -0, -0, -0, -1, -0.5, -0.5, -0.5, 0.7, -0, -1, -0.5, 0.2, -0, 0.1, -0.4, 0.1, -0, 0.1, -0.8, 0.1, -0, -0, 0.6, -0.5, -1];
 
         let sample = [
-            omnivour,
-            herbivour,
             herbivour
         ];
         
@@ -186,10 +184,11 @@ let simulation = function(sim) {
         }
 
         sim.stroke(5);
+        sim.strokeWeight(1);
         if(foodParticle.isPoison) {
-            sim.fill(182, 102, 255, 150);
+            sim.fill(182, 102, 255);
         } else {
-            sim.fill(69,236,253, 150);
+            sim.fill(69,236,253);
         }
 
         sim.ellipse(foodParticle.position.x, foodParticle.position.y, foodParticle.size, foodParticle.size);
@@ -227,7 +226,7 @@ let simulation = function(sim) {
         if(bloop.isAgro) {
             sim.fill(20);
             sim.stroke(255, 80, 80);
-            sim.strokeWeight(bloop.size / 2);
+            sim.strokeWeight(bloop.size / 3);
             sim.line(0, 0, 0, -bloop.size / 2);
             sim.strokeWeight(bloop.size / 4);
             sim.triangle(-bloop.size / 4, -bloop.size / 2, 0, -bloop.size / 2, -bloop.size / 4, -bloop.size / 5 * 3);
