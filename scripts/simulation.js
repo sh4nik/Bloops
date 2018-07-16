@@ -35,16 +35,21 @@ let simulation = function(sim) {
         }
     };
 
-    sim.theme = themes['light'];
+    sim.theme = themes[localStorage.getItem('selectedTheme') || 'light'];
 
     sim.changeTheme = function() {
         sim.theme = sim.theme === themes['light'] ? themes['dark'] : themes['light'];
+        localStorage.setItem('selectedTheme', sim.theme === themes['light'] ? 'light' : 'dark');
     };
 
     sim.extract = function() {
-        let dna = JSON.stringify(sim.selectedBloop.brain.weights.map(i=>i=Math.round( i * 10) / 10));
-        document.getElementById('extraction-zone').innerHTML = dna;
-        document.getElementById('extraction-zone').style.display = 'block';
+        if(sim.selectedBloop) {
+            let dna = JSON.stringify(sim.selectedBloop.brain.weights.map(i=>i=Math.round( i * 10) / 10));
+            document.getElementById('extraction-zone').innerHTML = dna;
+            document.getElementById('extraction-zone').style.display = 'block';
+            document.getElementById('extraction-zone').select();
+            document.execCommand('copy');
+        }
     };
 
     sim.clone = function() {
