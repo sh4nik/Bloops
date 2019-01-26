@@ -1,62 +1,73 @@
 class EntityProcessor {
-  init(opts) {
-    this.entitiesToInject = opts.entitiesToInject || [];
+  constructor(opts) {
+    this.incubator = [...opts.entities] || [];
     this.preStep = opts.preStep;
+    this.postStep = opts.postStep;
     this.entities = [];
   }
   step() {
     if (this.preStep) this.preStep(this.entities);
-    this.entities = [...this.entities, ...this.entitiesToInject.splice(0, this.entitiesToInject.length)]
+    this.entities = [...this.entities, ...this.incubator];
+    this.incubator = [];
     this.entities = this.entities.filter(e => e.isActive);
     this.entities.forEach(e => e.step && e.step(this.entities, this.entitiesToInject));
+    if (this.postStep) this.postStep(this.entities);
   }
-  print() {
-    console.log(this.entities);
+  log() {
+    console.log({
+      entities: this.entities,
+      incubator: this.incubator
+    });
+  }
+  static produceEntities(entityConfig) {
+    const entities = [];
+    entityConfig.forEach(({ entity, count, opts }) => {
+      for (let i = 0; i < count; i++) {
+        entities.push(new entity(opts));
+      }
+    });
+    return entities;
   }
 }
 
 class Simulation {
-  static run(initialEntityConfig) {
-
-    const ep = new EntityProcessor();
-    const entitiesToInject = [];
-
-    initialEntityConfig.forEach(({ entity, count, opts }) => {
-      for (let i = 0; i < count; i++) {
-        entitiesToInject.push(new entity(opts));
-      }
+  constructor({ entityConfig }) {
+    this.ep = new EntityProcessor({
+      entities: EntityProcessor.produceEntities(entityConfig),
+      preStep: function (entities) { },
+      postStep: function (entities) { }
     });
-    
-    ep.init({
-      entitiesToInject,
-      preStep: function (entities) { }
-    });
-
-    for (var i = 0; i < 1000; i++) {
-      ep.step();
-      ep.print();
+    this.stopFlag = false;
+  }
+  run() {
+    while(true) {
+      this.ep.step();
+      this.ep.log();
     }
-
   }
 }
 
 class Agent {
-  constructor(opts) {
-    this.isActive = opts.isActive !== undefined ? opts.isActive : true;
-    this.age = opts.age !== undefined ? opts.age : 0;
+  constructor({ isActive = true, age = 0 }) {
+    this.isActive = isActive;
+    this.age = age;
   }
-  step(entities, entitiesToInject) { }
+  step(entities, incubator) { }
 }
 
 class Food {
-  constructor(opts) {
-    this.isActive = opts.isActive !== undefined ? opts.isActive : true;
+  constructor({ isActive = true }) {
+    this.isActive = isActive;
   }
 }
 
-Simulation.run([
-  { entity: Agent, count: 2, opts: { age: 2 } },
-  { entity: Agent, count: 5, opts: { age: 5 } },
-  { entity: Agent, count: 1, opts: { age: 666 } },
-  { entity: Food, count: 10, opts: {} }
-]);
+const sim = new Simulation({
+  entityConfig: [
+    { entity: Agent, count: 2, opts: { age: 2 } },
+    { entity: Agent, count: 5, opts: { age: 5 } },
+    { entity: Agent, count: 1, opts: { age: 6 } },
+    { entity: Food, count: 10, opts: {} }
+  ]
+});
+
+sim.run();
