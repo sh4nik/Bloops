@@ -5,19 +5,16 @@ class EntityProcessor {
     this.postStep = opts.postStep;
     this.entities = [];
   }
-  step() {
+  step({ renderOpts }) {
     if (this.preStep) this.preStep(this.entities);
     this.entities = [...this.entities, ...this.incubator];
     this.incubator = [];
     this.entities = this.entities.filter(e => e.isActive);
-    this.entities.forEach(e => e.step && e.step(this.entities, this.entitiesToInject));
-    if (this.postStep) this.postStep(this.entities);
-  }
-  log() {
-    console.log({
-      entities: this.entities,
-      incubator: this.incubator
+    this.entities.forEach(e => {
+      if (e.step) e.step(this.entities, this.entitiesToInject);
+      if (renderOpts && e.render) e.render(this.entities, renderOpts);
     });
+    if (this.postStep) this.postStep(this.entities);
   }
   static produceEntities(entityConfig) {
     const entities = [];
@@ -37,12 +34,11 @@ class Simulation {
       preStep: function (entities) { },
       postStep: function (entities) { }
     });
-    this.stopFlag = false;
   }
   run() {
+    const renderOpts = {};
     while(true) {
-      this.ep.step();
-      this.ep.log();
+      this.ep.step({renderOpts});
     }
   }
 }
@@ -53,11 +49,17 @@ class Agent {
     this.age = age;
   }
   step(entities, incubator) { }
+  render(entities, renderOpts) {
+    console.log(this);
+  }
 }
 
 class Food {
   constructor({ isActive = true }) {
     this.isActive = isActive;
+  }
+  render(entities, renderOpts) {
+    console.log(this);
   }
 }
 
