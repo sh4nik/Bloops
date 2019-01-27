@@ -18,9 +18,9 @@ class EntityProcessor {
   }
   static produceEntities(entityConfig) {
     const entities = [];
-    entityConfig.forEach(({ entity, count, opts }) => {
+    entityConfig.forEach(({ Entity, count, opts }) => {
       for (let i = 0; i < count; i++) {
-        entities.push(new entity(opts));
+        entities.push(new Entity(opts));
       }
     });
     return entities;
@@ -28,18 +28,20 @@ class EntityProcessor {
 }
 
 class Simulation {
-  constructor({ entityConfig }) {
+  constructor({ canvas, entityConfig }) {
     this.ep = new EntityProcessor({
       entities: EntityProcessor.produceEntities(entityConfig),
       preStep: function (entities) { },
       postStep: function (entities) { }
     });
+    this.stage = new createjs.Stage(canvas);
   }
   run() {
-    const renderOpts = {};
-    while(true) {
-      this.ep.step({renderOpts});
-    }
+    createjs.Ticker.addEventListener("tick", () => {
+      const renderOpts = { stage: this.stage };
+      this.ep.step({ renderOpts });
+      this.stage.update();
+    });
   }
 }
 
@@ -47,10 +49,21 @@ class Agent {
   constructor({ isActive = true, age = 0 }) {
     this.isActive = isActive;
     this.age = age;
+    this.x = 0;
+    this.y = 0;
   }
-  step(entities, incubator) { }
+  step(entities, incubator) {
+    this.x += 5;
+    this.y += 5;
+  }
   render(entities, renderOpts) {
-    console.log(this);
+    if(renderOpts && !this.circle) {
+      this.circle = new createjs.Shape();
+      renderOpts.stage.addChild(this.circle);
+      this.circle.graphics.beginFill('#222').drawCircle(0, 0, 20);
+    }
+    this.circle.x = this.x;
+    this.circle.y = this.y;
   }
 }
 
@@ -58,18 +71,18 @@ class Food {
   constructor({ isActive = true }) {
     this.isActive = isActive;
   }
-  render(entities, renderOpts) {
-    console.log(this);
-  }
+  render(entities, renderOpts) { }
 }
 
-const sim = new Simulation({
-  entityConfig: [
-    { entity: Agent, count: 2, opts: { age: 2 } },
-    { entity: Agent, count: 5, opts: { age: 5 } },
-    { entity: Agent, count: 1, opts: { age: 6 } },
-    { entity: Food, count: 10, opts: {} }
-  ]
-});
-
-sim.run();
+function init() {
+  const sim = new Simulation({
+    canvas: 'main-canvas',
+    entityConfig: [
+      { Entity: Agent, count: 2, opts: { age: 2 } },
+      { Entity: Agent, count: 5, opts: { age: 5 } },
+      { Entity: Agent, count: 1, opts: { age: 6 } },
+      { Entity: Food, count: 10, opts: {} }
+    ]
+  });
+  sim.run();
+}
