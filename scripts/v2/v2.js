@@ -76,6 +76,20 @@ class Agent {
   }
 }
 
+class Brain {
+  constructor({ inputs = [], outputs = [], layers = [] }) {
+    this.inputs = inputs;
+    this.outputs = outputs;
+    this.layers = layers;
+  }
+  compute(inputValues) { }
+  extractJson() { }
+  loadJson(json) { }
+  clone() { }
+  crossover(brain2) { }
+  mutate(rate) { }
+}
+
 class Food {
   constructor({ isActive = true }) {
     this.isActive = isActive;
