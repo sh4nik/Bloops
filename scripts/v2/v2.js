@@ -34,9 +34,13 @@ class Simulation {
       preStep: function (entities) { },
       postStep: function (entities) { }
     });
-    this.stage = new createjs.Stage(canvas);
+    this.stage = new createjs.StageGL(canvas,{ antialias: true });
+  }
+  render() {
+    this.stage.setClearColor("#2299aa");
   }
   run() {
+    this.render();
     createjs.Ticker.addEventListener("tick", () => {
       const renderOpts = { stage: this.stage };
       this.ep.step({ renderOpts });
@@ -53,15 +57,18 @@ class Agent {
     this.y = 0;
   }
   step(entities, incubator) {
-    this.x += 5;
-    this.y += 5;
+    this.x += 1;
+    this.y += 1;
+    this.age += 1;
   }
   render(entities, renderOpts) {
+    let r = 20;
     if(renderOpts && !this.circle) {
       this.circle = new createjs.Shape();
       renderOpts.stage.addChild(this.circle);
-      this.circle.graphics.beginFill('#222').drawCircle(0, 0, 20);
+      this.circle.graphics.beginFill('#333').drawCircle(0, 0, r);
     }
+    this.circle.cache(-r,-r, r*2,r*2);
     this.circle.x = this.x;
     this.circle.y = this.y;
   }
