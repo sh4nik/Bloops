@@ -86,11 +86,59 @@ class Brain {
     this.network.compute(inputValues, outputValues);
     this.outputs.map((o, index) => Outputs[o].process(outputValues[index], agent));
   }
-  extractJson() { }
-  loadJson(json) { }
-  clone() { }
-  crossover(brain2) { }
-  mutate(rate) { }
+  extract() {
+    return {
+      inputs: this.inputs,
+      outputs: this.outputs,
+      midLayerNodes: this.midLayerNodes,
+      weights: this.brain.weights
+    };
+  }
+  clone() {
+    return new Brain(this.extract());
+  }
+  static crossover(fatherArray, motherArray) {
+    var len = motherArray.length;
+    var cl = Math.floor(len / 3);
+    var ca = cl;
+    var cb = ca + cl;     
+    if (ca > cb) {
+        var tmp = cb;
+        cb = ca;
+        ca = tmp;
+    }
+
+    var child1ArrayTemp = [];
+    child1ArrayTemp = child1ArrayTemp.concat(fatherArray.slice(0,ca));
+    child1ArrayTemp = child1ArrayTemp.concat(motherArray.slice(ca, cb));
+    child1ArrayTemp = child1ArrayTemp.concat(fatherArray.slice(cb, len));
+
+    var child2ArrayTemp = [];
+    child2ArrayTemp = child2ArrayTemp.concat(motherArray.slice(0,ca));
+    child2ArrayTemp = child2ArrayTemp.concat(fatherArray.slice(ca, cb));
+    child2ArrayTemp = child2ArrayTemp.concat(motherArray.slice(cb, len));
+
+    let children = [];
+    children.push(child1ArrayTemp);
+    children.push(child2ArrayTemp);
+
+    return children;
+  }
+  static mutate(data) {
+    var iswap1 = Math.floor(Math.random() * data.length);
+    var iswap2 = Math.floor(Math.random() * data.length);
+
+    if (iswap1 == iswap2) {
+        if (iswap1 > 0) {
+            iswap1--;
+        } else {
+            iswap1++;
+        }
+    }
+    var t = data[iswap1];
+    data[iswap1] = data[iswap2];
+    data[iswap2] = t;
+  }
 }
 
 class Agent {
