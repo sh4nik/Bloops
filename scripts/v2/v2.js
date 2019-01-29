@@ -66,7 +66,9 @@ let Inputs = {
 let Outputs = {
   testOut: {
     displayName: 'Test Output',
-    process: (val, agent) => { }
+    process: (val, agent) => {
+      agent.applyForce(p5.createVector(3, 4));
+    }
   }
 };
 
@@ -161,6 +163,7 @@ class Agent {
     this.isActive = isActive;
     this.age = age;
     this.health = health;
+    this.maxSpeed = 4;
     this.position = position;
     this.velocity = p5.createVector(0, 0);
     this.acceleration = p5.createVector(0, 0);
@@ -173,8 +176,9 @@ class Agent {
     });
   }
   step(entities, incubator, stage) {
-    this.position.x += 1;
-    this.position.y += 1;
+    this.velocity.add(this.acceleration);
+    this.velocity.limit(this.maxSpeed);
+    this.position.add(this.velocity);
     Util.wrapAround(this.position, stage);
     this.age += 1;
     this.health += 1;
@@ -196,6 +200,9 @@ class Agent {
     }
     this.circle.x = this.position.x;
     this.circle.y = this.position.y;
+  }
+  applyForce(force) {
+    this.acceleration.add(force);
   }
   findMate(agents) {
     let total = 0;
