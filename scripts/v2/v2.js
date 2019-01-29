@@ -43,8 +43,8 @@ class Simulation {
   run() {
     this.render();
     createjs.Ticker.addEventListener('tick', () => {
-      // const renderer = { stage: this.stage };
-      let renderer;
+      const renderer = { stage: this.stage };
+      // let renderer;
       this.ep.step({ renderer });
       this.stage.update();
     });
@@ -145,7 +145,7 @@ class Brain {
 }
 
 class Agent {
-  constructor({ isActive = true, age = 0, matingRate = 0.1, mutationRate = 0.01, health = 100, brain }) {
+  constructor({ isActive = true, age = 0, matingRate = 0.0006, mutationRate = 0.001, health = 100, brain }) {
     this.isActive = isActive;
     this.age = age;
     this.health = health;
@@ -164,9 +164,9 @@ class Agent {
     this.health += 1;
     let env = this.prepData(entities);
     this.brain.compute(this, entities, env);
-    if (Math.random(1) > this.matingRate) {
+    if (Math.random(1) < this.matingRate) {
       let child = this.mate(this.findMate(entities));
-      if (Math.random(1) > this.mutationRate) child.brain.mutate();
+      if (Math.random(1) < this.mutationRate) child.brain.mutate();
       incubator.push(child);
     }
   }
@@ -223,7 +223,7 @@ function init() {
     canvas: 'main-canvas',
     framerate: 60,
     entityConfig: [
-      { Entity: Agent, count: 2, opts: { age: 2 } },
+      { Entity: Agent, count: 1, opts: { age: 2 } },
       { Entity: Agent, count: 5, opts: { age: 5 } },
       { Entity: Agent, count: 1, opts: { age: 6 } },
       { Entity: Food, count: 10, opts: {} }
