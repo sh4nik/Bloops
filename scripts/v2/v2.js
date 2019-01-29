@@ -44,7 +44,6 @@ class Simulation {
     this.render();
     createjs.Ticker.addEventListener('tick', () => {
       const renderer = { stage: this.stage };
-      // let renderer;
       this.ep.step({ renderer });
       this.stage.update();
     });
@@ -54,7 +53,7 @@ class Simulation {
 let Inputs = {
   testIn: {
     displayName: 'Test Input',
-    process: (agent, entities, data) => {
+    process: (agent, entities, env) => {
       return 1;
     }
   }
@@ -80,8 +79,8 @@ class Brain {
     this.network.randomize();
     if (weights) this.network.weights = weights;
   }
-  compute(agent, entities, data) {
-    let inputValues = this.inputs.map(i => Inputs[i].process(agent, entities, data));
+  compute(agent, entities, env) {
+    let inputValues = this.inputs.map(i => Inputs[i].process(agent, entities, env));
     let outputValues = [];
     this.network.compute(inputValues, outputValues);
     this.outputs.map((o, index) => Outputs[o].process(outputValues[index], agent));
@@ -98,7 +97,8 @@ class Brain {
     return new Brain(this.extract());
   }
   mate(partnerBrain) {
-    let newWeights = Brain.crossover(this.network.weights, partnerBrain.network.weights)[0];
+    let options = Brain.crossover(this.network.weights, partnerBrain.network.weights);
+    let newWeights = options[Math.random(1) < 0.5 ? 1 : 0];
     let childBrain = this.clone();
     childBrain.network.weights = newWeights
     return childBrain;
@@ -145,7 +145,7 @@ class Brain {
 }
 
 class Agent {
-  constructor({ isActive = true, age = 0, matingRate = 0.0006, mutationRate = 0.001, health = 100, brain }) {
+  constructor({ isActive = true, age = 0, matingRate = 0.006, mutationRate = 0.001, health = 100, brain }) {
     this.isActive = isActive;
     this.age = age;
     this.health = health;
@@ -162,10 +162,11 @@ class Agent {
     this.x += 3;
     this.age += 1;
     this.health += 1;
-    let env = this.prepData(entities);
+    let env = this.prepEnvironment(entities);
     this.brain.compute(this, entities, env);
     if (Math.random(1) < this.matingRate) {
-      let child = this.mate(this.findMate(entities));
+      let partner = this.findMate(entities);
+      let child = this.mate(partner);
       if (Math.random(1) < this.mutationRate) child.brain.mutate();
       incubator.push(child);
     }
@@ -200,9 +201,9 @@ class Agent {
     return agents[index];
   }
   mate(partner) {
-    return new Agent(this.brain.mate(partner.brain));
+    return new Agent({ brain: this.brain.mate(partner.brain) });
   }
-  prepData(entities) {
+  prepEnvironment(entities) {
     let agents = entities.filter(e => e instanceof Agent);
     let food = entities.filter(e => e instanceof Food);
     return {
