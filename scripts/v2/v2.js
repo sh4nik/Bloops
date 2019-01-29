@@ -11,7 +11,7 @@ class EntityProcessor {
     this.incubator = [];
     this.entities = this.entities.filter(e => e.isActive);
     this.entities.forEach(e => {
-      if (e.step) e.step(this.entities, this.incubator);
+      if (e.step) e.step(this.entities, this.incubator, renderer.stage);
       if (renderer && e.render) e.render(this.entities, renderer);
     });
     if (this.postStep) this.postStep(this.entities);
@@ -172,9 +172,10 @@ class Agent {
       midLayerNodes: 4
     });
   }
-  step(entities, incubator) {
+  step(entities, incubator, stage) {
     this.position.x += 1;
     this.position.y += 1;
+    Util.wrapAround(this.position, stage);
     this.age += 1;
     this.health += 1;
     let env = this.prepEnvironment(entities);
@@ -246,6 +247,12 @@ class Util {
     return entities.reduce((prev, curr) => {
       return entity.position.dist(curr.position) < entity.position.dist(prev.position) || entity === prev ? curr : prev;
     });
+  }
+  static wrapAround(vector, stage) {
+    if (vector.x < 0) vector.x = stage.canvas.width;
+    if (vector.y < 0) vector.y = stage.canvas.height;
+    if (vector.x > stage.canvas.width) vector.x = 0;
+    if (vector.y > stage.canvas.height) vector.y = 0;
   }
 }
 
