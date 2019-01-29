@@ -11,7 +11,7 @@ class EntityProcessor {
     this.incubator = [];
     this.entities = this.entities.filter(e => e.isActive);
     this.entities.forEach(e => {
-      if (e.step) e.step(this.entities, this.entitiesToInject);
+      if (e.step) e.step(this.entities, this.incubator);
       if (renderer && e.render) e.render(this.entities, renderer);
     });
     if (this.postStep) this.postStep(this.entities);
@@ -91,63 +91,68 @@ class Brain {
       inputs: this.inputs,
       outputs: this.outputs,
       midLayerNodes: this.midLayerNodes,
-      weights: this.brain.weights
+      weights: this.network.weights
     };
   }
   clone() {
     return new Brain(this.extract());
   }
-  static crossover(fatherArray, motherArray) {
-    var len = motherArray.length;
-    var cl = Math.floor(len / 3);
-    var ca = cl;
-    var cb = ca + cl;     
-    if (ca > cb) {
-        var tmp = cb;
-        cb = ca;
-        ca = tmp;
-    }
-
-    var child1ArrayTemp = [];
-    child1ArrayTemp = child1ArrayTemp.concat(fatherArray.slice(0,ca));
-    child1ArrayTemp = child1ArrayTemp.concat(motherArray.slice(ca, cb));
-    child1ArrayTemp = child1ArrayTemp.concat(fatherArray.slice(cb, len));
-
-    var child2ArrayTemp = [];
-    child2ArrayTemp = child2ArrayTemp.concat(motherArray.slice(0,ca));
-    child2ArrayTemp = child2ArrayTemp.concat(fatherArray.slice(ca, cb));
-    child2ArrayTemp = child2ArrayTemp.concat(motherArray.slice(cb, len));
-
-    let children = [];
-    children.push(child1ArrayTemp);
-    children.push(child2ArrayTemp);
-
-    return children;
+  mate(partnerBrain) {
+    let newWeights = Brain.crossover(this.network.weights, partnerBrain.network.weights)[0];
+    let childBrain = this.clone();
+    childBrain.network.weights = newWeights
+    return childBrain;
   }
-  static mutate(data) {
+  mutate() {
+    let data = this.network.weights;
     var iswap1 = Math.floor(Math.random() * data.length);
     var iswap2 = Math.floor(Math.random() * data.length);
 
     if (iswap1 == iswap2) {
-        if (iswap1 > 0) {
-            iswap1--;
-        } else {
-            iswap1++;
-        }
+      if (iswap1 > 0) {
+        iswap1--;
+      } else {
+        iswap1++;
+      }
     }
     var t = data[iswap1];
     data[iswap1] = data[iswap2];
     data[iswap2] = t;
   }
+  static crossover(fatherArray, motherArray) {
+    var len = motherArray.length;
+    var cl = Math.floor(len / 3);
+    var ca = cl;
+    var cb = ca + cl;
+    if (ca > cb) {
+      var tmp = cb;
+      cb = ca;
+      ca = tmp;
+    }
+    var child1ArrayTemp = [];
+    child1ArrayTemp = child1ArrayTemp.concat(fatherArray.slice(0, ca));
+    child1ArrayTemp = child1ArrayTemp.concat(motherArray.slice(ca, cb));
+    child1ArrayTemp = child1ArrayTemp.concat(fatherArray.slice(cb, len));
+    var child2ArrayTemp = [];
+    child2ArrayTemp = child2ArrayTemp.concat(motherArray.slice(0, ca));
+    child2ArrayTemp = child2ArrayTemp.concat(fatherArray.slice(ca, cb));
+    child2ArrayTemp = child2ArrayTemp.concat(motherArray.slice(cb, len));
+    let children = [];
+    children.push(child1ArrayTemp);
+    children.push(child2ArrayTemp);
+    return children;
+  }
 }
 
 class Agent {
-  constructor({ isActive = true, age = 0 }) {
+  constructor({ isActive = true, age = 0, matingRate = 0.1, mutationRate = 0.01, health = 100, brain }) {
     this.isActive = isActive;
     this.age = age;
+    this.health = health;
     this.x = 0;
     this.y = 60;
-    this.brain = new Brain({
+    this.matingRate = matingRate;
+    this.brain = brain || new Brain({
       inputs: ['testIn'],
       outputs: ['testOut'],
       midLayerNodes: 4
@@ -156,7 +161,14 @@ class Agent {
   step(entities, incubator) {
     this.x += 3;
     this.age += 1;
-    this.brain.compute(this, entities, this.prepData(entities));
+    this.health += 1;
+    let env = this.prepData(entities);
+    this.brain.compute(this, entities, env);
+    if (Math.random(1) > this.matingRate) {
+      let child = this.mate(this.findMate(entities));
+      if (Math.random(1) > this.mutationRate) child.brain.mutate();
+      incubator.push(child);
+    }
   }
   render(entities, renderer) {
     let r = 30;
@@ -170,9 +182,31 @@ class Agent {
     this.circle.y = this.y;
     if (this.x > renderer.stage.canvas.width) { this.x = 0; }
   }
+  findMate(agents) {
+    let total = 0;
+    agents.forEach(agent => {
+      total += agent.health;
+    });
+    agents.forEach(agent => {
+      agent.matingProbability = agent.health / total;
+    });
+    let x = Math.random(1);
+    let index = 0;
+    while (x > 0) {
+      x -= agents[index].matingProbability;
+      index++;
+    }
+    index--;
+    return agents[index];
+  }
+  mate(partner) {
+    return new Agent(this.brain.mate(partner.brain));
+  }
   prepData(entities) {
+    let agents = entities.filter(e => e instanceof Agent);
+    let food = entities.filter(e => e instanceof Food);
     return {
-      nearestAgent: null, nearestFood: null
+      agents, food, nearestAgent: null, nearestFood: null
     };
   }
 }
