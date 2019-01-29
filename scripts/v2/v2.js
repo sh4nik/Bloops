@@ -16,10 +16,11 @@ class EntityProcessor {
     });
     if (this.postStep) this.postStep(this.entities);
   }
-  static produceEntities(entityConfig) {
+  static produceEntities(entityConfig, stage) {
     const entities = [];
     entityConfig.forEach(({ Entity, count, opts }) => {
       for (let i = 0; i < count; i++) {
+        opts.position = p5.createVector(Util.random(stage.canvas.width), Util.random(stage.canvas.height));
         entities.push(new Entity(opts));
       }
     });
@@ -29,17 +30,16 @@ class EntityProcessor {
 
 class Simulation {
   constructor({ canvas, entityConfig, framerate }) {
+    this.stage = new createjs.Stage(canvas);
+    this.resize();
     this.ep = new EntityProcessor({
-      entities: EntityProcessor.produceEntities(entityConfig),
+      entities: EntityProcessor.produceEntities(entityConfig, this.stage),
       preStep: function (entities) { },
       postStep: function (entities) { }
     });
-    this.stage = new createjs.StageGL(canvas, { antialias: true });
     createjs.Ticker.framerate = framerate;
   }
-  render() {
-    this.stage.setClearColor('#2299aa');
-  }
+  render() { }
   run() {
     this.render();
     createjs.Ticker.addEventListener('tick', () => {
@@ -47,6 +47,10 @@ class Simulation {
       this.ep.step({ renderer });
       this.stage.update();
     });
+  }
+  resize() {
+    this.stage.canvas.width = window.innerWidth;
+    this.stage.canvas.height = window.innerHeight;
   }
 }
 
@@ -98,15 +102,15 @@ class Brain {
   }
   mate(partnerBrain) {
     let options = Brain.crossover(this.network.weights, partnerBrain.network.weights);
-    let newWeights = options[Math.random(1) < 0.5 ? 1 : 0];
+    let newWeights = options[Util.random(1) < 0.5 ? 1 : 0];
     let childBrain = this.clone();
     childBrain.network.weights = newWeights
     return childBrain;
   }
   mutate() {
     let data = this.network.weights;
-    var iswap1 = Math.floor(Math.random() * data.length);
-    var iswap2 = Math.floor(Math.random() * data.length);
+    var iswap1 = Math.floor(Util.random() * data.length);
+    var iswap2 = Math.floor(Util.random() * data.length);
 
     if (iswap1 == iswap2) {
       if (iswap1 > 0) {
@@ -145,13 +149,23 @@ class Brain {
 }
 
 class Agent {
-  constructor({ isActive = true, age = 0, matingRate = 0.006, mutationRate = 0.001, health = 100, brain }) {
+  constructor({
+    isActive = true,
+    age = 0,
+    position,
+    matingRate = 0.006,
+    mutationRate = 0.001,
+    health = 100,
+    brain
+  }) {
     this.isActive = isActive;
     this.age = age;
     this.health = health;
-    this.x = 0;
-    this.y = 60;
+    this.position = position;
+    this.velocity = p5.createVector(0, 0);
+    this.acceleration = p5.createVector(0, 0);
     this.matingRate = matingRate;
+    this.mutationRate = mutationRate;
     this.brain = brain || new Brain({
       inputs: ['testIn'],
       outputs: ['testOut'],
@@ -159,29 +173,30 @@ class Agent {
     });
   }
   step(entities, incubator) {
-    this.x += 3;
+    this.position.x += 1;
+    this.position.y += 1;
     this.age += 1;
     this.health += 1;
     let env = this.prepEnvironment(entities);
     this.brain.compute(this, entities, env);
-    if (Math.random(1) < this.matingRate) {
+    if (Util.random(1) < this.matingRate) {
       let partner = this.findMate(entities);
       let child = this.mate(partner);
-      if (Math.random(1) < this.mutationRate) child.brain.mutate();
+      if (Util.random(1) < this.mutationRate) child.brain.mutate();
       incubator.push(child);
     }
   }
   render(entities, renderer) {
-    let r = 30;
+    let r = 5;
     if (renderer && !this.circle) {
       this.circle = new createjs.Shape();
       renderer.stage.addChild(this.circle);
       this.circle.graphics.beginFill('#333').drawCircle(0, 0, r);
     }
-    this.circle.cache(-r, -r, r * 2, r * 2);
-    this.circle.x = this.x;
-    this.circle.y = this.y;
-    if (this.x > renderer.stage.canvas.width) { this.x = 0; }
+    this.circle.x = this.position.x;
+    this.circle.y = this.position.y;
+    if (this.position.x > renderer.stage.canvas.width) { this.position.x = 0; }
+    if (this.position.y > renderer.stage.canvas.height) { this.position.y = 0; }
   }
   findMate(agents) {
     let total = 0;
@@ -191,7 +206,7 @@ class Agent {
     agents.forEach(agent => {
       agent.matingProbability = agent.health / total;
     });
-    let x = Math.random(1);
+    let x = Util.random(1);
     let index = 0;
     while (x > 0) {
       x -= agents[index].matingProbability;
@@ -207,16 +222,31 @@ class Agent {
     let agents = entities.filter(e => e instanceof Agent);
     let food = entities.filter(e => e instanceof Food);
     return {
-      agents, food, nearestAgent: null, nearestFood: null
+      agents,
+      food,
+      nearestAgent: Util.findNearest(this, agents),
+      nearestFood: Util.findNearest(this, food)
     };
   }
 }
 
 class Food {
-  constructor({ isActive = true }) {
+  constructor({ isActive = true, position }) {
     this.isActive = isActive;
+    this.position = position;
   }
   render(entities, renderer) { }
+}
+
+class Util {
+  static random(max) {
+    return Math.floor(Math.random() * max) + 1
+  }
+  static findNearest(entity, entities) {
+    return entities.reduce((prev, curr) => {
+      return entity.position.dist(curr.position) < entity.position.dist(prev.position) || entity === prev ? curr : prev;
+    });
+  }
 }
 
 function init() {
@@ -224,7 +254,7 @@ function init() {
     canvas: 'main-canvas',
     framerate: 60,
     entityConfig: [
-      { Entity: Agent, count: 1, opts: { age: 2 } },
+      { Entity: Agent, count: 4, opts: { age: 2 } },
       { Entity: Agent, count: 5, opts: { age: 5 } },
       { Entity: Agent, count: 1, opts: { age: 6 } },
       { Entity: Food, count: 10, opts: {} }
