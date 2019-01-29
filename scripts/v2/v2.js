@@ -196,8 +196,6 @@ class Agent {
     }
     this.circle.x = this.position.x;
     this.circle.y = this.position.y;
-    if (this.position.x > renderer.stage.canvas.width) { this.position.x = 0; }
-    if (this.position.y > renderer.stage.canvas.height) { this.position.y = 0; }
   }
   findMate(agents) {
     let total = 0;
@@ -236,7 +234,16 @@ class Food {
     this.isActive = isActive;
     this.position = position;
   }
-  render(entities, renderer) { }
+  render(entities, renderer) {
+    let r = 3;
+    if (renderer && !this.circle) {
+      this.circle = new createjs.Shape();
+      renderer.stage.addChild(this.circle);
+      this.circle.graphics.beginFill('#a0a').drawCircle(0, 0, r);
+    }
+    this.circle.x = this.position.x;
+    this.circle.y = this.position.y;
+  }
 }
 
 class Util {
