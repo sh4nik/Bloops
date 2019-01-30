@@ -212,7 +212,7 @@ class Agent {
     if (renderer && !this.circle) {
       this.circle = new createjs.Shape();
       renderer.stage.addChild(this.circle);
-      this.circle.graphics.beginFill('#333').drawCircle(0, 0, r);
+      this.circle.graphics.beginFill('#96e7ac').drawCircle(0, 0, r);
     }
     if (this.isActive) {
       this.circle.x = this.position.x;
@@ -270,7 +270,7 @@ class Agent {
   }
   prepEnvironment(entities) {
     let agents = entities.filter(e => e instanceof Agent);
-    let food = entities.filter(e => e instanceof Food);
+    let food = entities.filter(e => e instanceof Food || e instanceof Poison);
     let nearestAgent = Util.findNearest(this, agents);
     let nearestFood = Util.findNearest(this, food);
     let desiredVectorToAgent = p5.Vector.sub(nearestAgent.position, this.position);
@@ -300,7 +300,28 @@ class Food {
     if (renderer && !this.circle) {
       this.circle = new createjs.Shape();
       renderer.stage.addChild(this.circle);
-      this.circle.graphics.beginFill('#a0a').drawCircle(0, 0, r);
+      this.circle.graphics.beginFill('#eb504c').drawCircle(0, 0, r);
+    }
+    if (this.isActive) {
+      this.circle.x = this.position.x;
+      this.circle.y = this.position.y;
+    } else {
+      renderer.stage.removeChild(this.circle);
+    }
+  }
+}
+
+class Poison {
+  constructor({ isActive = true, position }) {
+    this.isActive = isActive;
+    this.position = position;
+  }
+  render(entities, renderer) {
+    let r = 3;
+    if (renderer && !this.circle) {
+      this.circle = new createjs.Shape();
+      renderer.stage.addChild(this.circle);
+      this.circle.graphics.beginFill('#0da5bd').drawCircle(0, 0, r);
     }
     if (this.isActive) {
       this.circle.x = this.position.x;
@@ -334,7 +355,8 @@ function init() {
     framerate: 60,
     entityConfig: [
       { Entity: Agent, count: 10, opts: { age: 2 } },
-      { Entity: Food, count: 30, opts: {} }
+      { Entity: Food, count: 15, opts: {} },
+      { Entity: Poison, count: 15, opts: {} }
     ]
   });
   sim.run();
