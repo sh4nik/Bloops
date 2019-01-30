@@ -57,25 +57,25 @@ class Simulation {
 let Inputs = {
   nearestAgentX: {
     displayName: 'Nearest Agent X',
-    process: (agent, entities, env) => {
+    process: (env, agent, entities) => {
       return env.nearestAgentVector.x;
     }
   },
   nearestAgentY: {
     displayName: 'Nearest Agent Y',
-    process: (agent, entities, env) => {
+    process: (env, agent, entities) => {
       return env.nearestAgentVector.y;
     }
   },
   nearestFoodX: {
     displayName: 'Nearest Food X',
-    process: (agent, entities, env) => {
+    process: (env, agent, entities) => {
       return env.nearestFoodVector.x;
     }
   },
   nearestFoodY: {
     displayName: 'Nearest Food Y',
-    process: (agent, entities, env) => {
+    process: (env, agent, entities) => {
       return env.nearestFoodVector.y;
     }
   }
@@ -110,17 +110,17 @@ class Brain {
     if (weights) this.network.weights = weights;
   }
   compute(agent, entities, env) {
-    let inputValues = this.inputs.map(i => Inputs[i].process(agent, entities, env));
+    let inputValues = this.inputs.map(i => Inputs[i].process(env, agent, entities));
     let outputValues = [];
     this.network.compute(inputValues, outputValues);
     this.outputs.map((o, index) => Outputs[o].process(outputValues[index], agent));
   }
   extract() {
     return {
-      inputs: this.inputs,
-      outputs: this.outputs,
+      inputs: [...this.inputs],
+      outputs: [...this.outputs],
       midLayerNodes: this.midLayerNodes,
-      weights: this.network.weights
+      weights: [...this.network.weights]
     };
   }
   clone() {
@@ -179,9 +179,9 @@ class Agent {
     isActive = true,
     age = 0,
     position,
-    matingRate = 0.006,
+    matingRate = 0.002,
     mutationRate = 0.001,
-    health = 100,
+    health = 500,
     brain
   }) {
     this.isActive = isActive;
@@ -203,8 +203,9 @@ class Agent {
     this.updateMovement();
     Util.wrapAround(this.position, stage);
     this.updateStats();
-    this.brain.compute(this, entities, this.prepEnvironment(entities));
-    this.handleMating(incubator);
+    let env = this.prepEnvironment(entities);
+    this.brain.compute(this, entities, env);
+    this.handleMating(env.agents, incubator);
   }
   render(entities, renderer) {
     let r = 5;
@@ -213,8 +214,13 @@ class Agent {
       renderer.stage.addChild(this.circle);
       this.circle.graphics.beginFill('#333').drawCircle(0, 0, r);
     }
-    this.circle.x = this.position.x;
-    this.circle.y = this.position.y;
+    if (this.isActive) {
+      this.circle.x = this.position.x;
+      this.circle.y = this.position.y;
+    } else {
+      renderer.stage.removeChild(this.circle);
+    }
+
   }
   updateMovement() {
     this.velocity.add(this.acceleration);
@@ -223,14 +229,17 @@ class Agent {
   }
   updateStats() {
     this.age += 1;
-    this.health += 1;
+    this.health -= 1;
+    if (this.health === 0) this.isActive = false;
   }
-  handleMating(incubator) {
+  handleMating(agents, incubator) {
     if (Util.random(1) < this.matingRate) {
-      let partner = this.findMate(entities);
-      let child = this.mate(partner);
-      if (Util.random(1) < this.mutationRate) child.brain.mutate();
-      incubator.push(child);
+      let partner = this.findMate(agents);
+      if (partner) {
+        let child = this.mate(partner);
+        if (Util.random(1) < this.mutationRate) child.brain.mutate();
+        incubator.push(child);
+      }
     }
   }
   applyForce(force) {
@@ -254,7 +263,10 @@ class Agent {
     return agents[index];
   }
   mate(partner) {
-    return new Agent({ brain: this.brain.mate(partner.brain) });
+    return new Agent({
+      brain: this.brain.mate(partner.brain),
+      position: this.position.copy()
+    });
   }
   prepEnvironment(entities) {
     let agents = entities.filter(e => e instanceof Agent);
@@ -290,18 +302,22 @@ class Food {
       renderer.stage.addChild(this.circle);
       this.circle.graphics.beginFill('#a0a').drawCircle(0, 0, r);
     }
-    this.circle.x = this.position.x;
-    this.circle.y = this.position.y;
+    if (this.isActive) {
+      this.circle.x = this.position.x;
+      this.circle.y = this.position.y;
+    } else {
+      renderer.stage.removeChild(this.circle);
+    }
   }
 }
 
 class Util {
   static random(max) {
-    return Math.floor(Math.random() * max) + 1
+    return Math.random() * max;
   }
   static findNearest(entity, entities) {
     return entities.reduce((prev, curr) => {
-      return entity.position.dist(curr.position) < entity.position.dist(prev.position) || entity === prev ? curr : prev;
+      return entity.position.dist(curr.position) < entity.position.dist(prev.position) || entity === prev ? curr : prev;;
     });
   }
   static wrapAround(vector, stage) {
@@ -317,10 +333,8 @@ function init() {
     canvas: 'main-canvas',
     framerate: 60,
     entityConfig: [
-      { Entity: Agent, count: 4, opts: { age: 2 } },
-      { Entity: Agent, count: 5, opts: { age: 5 } },
-      { Entity: Agent, count: 1, opts: { age: 6 } },
-      { Entity: Food, count: 10, opts: {} }
+      { Entity: Agent, count: 10, opts: { age: 2 } },
+      { Entity: Food, count: 30, opts: {} }
     ]
   });
   sim.run();
