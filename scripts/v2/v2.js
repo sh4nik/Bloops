@@ -20,7 +20,7 @@ class EntityProcessor {
     const entities = [];
     entityConfig.forEach(({ Entity, count, opts }) => {
       for (let i = 0; i < count; i++) {
-        opts.position = p5.createVector(Util.random(stage.canvas.width), Util.random(stage.canvas.height));
+        opts.position = _p5.createVector(Util.random(stage.canvas.width), Util.random(stage.canvas.height));
         entities.push(new Entity(opts));
       }
     });
@@ -55,19 +55,43 @@ class Simulation {
 }
 
 let Inputs = {
-  testIn: {
-    displayName: 'Test Input',
+  nearestAgentX: {
+    displayName: 'Nearest Agent X',
     process: (agent, entities, env) => {
-      return 1;
+      return env.nearestAgentVector.x;
+    }
+  },
+  nearestAgentY: {
+    displayName: 'Nearest Agent Y',
+    process: (agent, entities, env) => {
+      return env.nearestAgentVector.y;
+    }
+  },
+  nearestFoodX: {
+    displayName: 'Nearest Food X',
+    process: (agent, entities, env) => {
+      return env.nearestFoodVector.x;
+    }
+  },
+  nearestFoodY: {
+    displayName: 'Nearest Food Y',
+    process: (agent, entities, env) => {
+      return env.nearestFoodVector.y;
     }
   }
 };
 
 let Outputs = {
-  testOut: {
-    displayName: 'Test Output',
+  desiredForceX: {
+    displayName: 'Desired Force X',
     process: (val, agent) => {
-      agent.applyForce(p5.createVector(3, 4));
+      agent.applyForce(_p5.createVector(val, 0));
+    }
+  },
+  desiredForceY: {
+    displayName: 'Desired Force Y',
+    process: (val, agent) => {
+      agent.applyForce(_p5.createVector(0, val));
     }
   }
 };
@@ -165,31 +189,23 @@ class Agent {
     this.health = health;
     this.maxSpeed = 4;
     this.position = position;
-    this.velocity = p5.createVector(0, 0);
-    this.acceleration = p5.createVector(0, 0);
+    this.velocity = _p5.createVector(0, 0);
+    this.acceleration = _p5.createVector(0, 0);
     this.matingRate = matingRate;
     this.mutationRate = mutationRate;
     this.brain = brain || new Brain({
-      inputs: ['testIn'],
-      outputs: ['testOut'],
+      inputs: ['nearestAgentX', 'nearestAgentY', 'nearestFoodX', 'nearestFoodY'],
+      outputs: ['desiredForceX', 'desiredForceY'],
       midLayerNodes: 4
     });
   }
   step(entities, incubator, stage) {
-    this.velocity.add(this.acceleration);
-    this.velocity.limit(this.maxSpeed);
-    this.position.add(this.velocity);
+    this.updateMovement();
     Util.wrapAround(this.position, stage);
-    this.age += 1;
-    this.health += 1;
+    this.updateStats();
     let env = this.prepEnvironment(entities);
     this.brain.compute(this, entities, env);
-    if (Util.random(1) < this.matingRate) {
-      let partner = this.findMate(entities);
-      let child = this.mate(partner);
-      if (Util.random(1) < this.mutationRate) child.brain.mutate();
-      incubator.push(child);
-    }
+    this.handleMating(incubator);
   }
   render(entities, renderer) {
     let r = 5;
@@ -200,6 +216,23 @@ class Agent {
     }
     this.circle.x = this.position.x;
     this.circle.y = this.position.y;
+  }
+  updateMovement() {
+    this.velocity.add(this.acceleration);
+    this.velocity.limit(this.maxSpeed);
+    this.position.add(this.velocity);
+  }
+  updateStats() {
+    this.age += 1;
+    this.health += 1;
+  }
+  handleMating(incubator) {
+    if (Util.random(1) < this.matingRate) {
+      let partner = this.findMate(entities);
+      let child = this.mate(partner);
+      if (Util.random(1) < this.mutationRate) child.brain.mutate();
+      incubator.push(child);
+    }
   }
   applyForce(force) {
     this.acceleration.add(force);
@@ -227,11 +260,21 @@ class Agent {
   prepEnvironment(entities) {
     let agents = entities.filter(e => e instanceof Agent);
     let food = entities.filter(e => e instanceof Food);
+    let nearestAgent = Util.findNearest(this, agents);
+    let nearestFood = Util.findNearest(this, food);
+    let desiredVectorToAgent = p5.Vector.sub(nearestAgent.position, this.position);
+    let nearestAgentVector = p5.Vector.sub(desiredVectorToAgent, this.velocity);
+    nearestAgentVector.normalize();
+    let desiredVectorToFood = p5.Vector.sub(nearestFood.position, this.position);
+    let nearestFoodVector = p5.Vector.sub(desiredVectorToFood, this.velocity);
+    nearestFoodVector.normalize();
     return {
       agents,
       food,
-      nearestAgent: Util.findNearest(this, agents),
-      nearestFood: Util.findNearest(this, food)
+      nearestAgent,
+      nearestFood,
+      nearestAgentVector,
+      nearestFoodVector
     };
   }
 }
