@@ -203,8 +203,7 @@ class Agent {
     this.updateMovement();
     Util.wrapAround(this.position, stage);
     this.updateStats();
-    let env = this.prepEnvironment(entities);
-    this.brain.compute(this, entities, env);
+    this.brain.compute(this, entities, this.prepEnvironment(entities));
     this.handleMating(incubator);
   }
   render(entities, renderer) {
