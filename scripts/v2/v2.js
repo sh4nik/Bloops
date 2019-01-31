@@ -29,9 +29,11 @@ class EntityProcessor {
 }
 
 class Simulation {
-  constructor({ canvas, entityConfig, framerate }) {
+  constructor({ canvas, entityConfig, framerate, theme }) {
     this.stage = new createjs.Stage(canvas);
+    this.theme = Theme.get(theme);
     this.resize();
+    this.applyBackgroundColor(canvas);
     this.dimensions = { width: this.stage.canvas.width, height: this.stage.canvas.height };
     this.ep = new EntityProcessor({
       entities: EntityProcessor.produceEntities(entityConfig, this.dimensions),
@@ -44,7 +46,7 @@ class Simulation {
   run() {
     this.render();
     createjs.Ticker.addEventListener('tick', () => {
-      const renderer = { stage: this.stage };
+      const renderer = { stage: this.stage, theme: this.theme };
       this.ep.step({ renderer, dimensions: this.dimensions });
       this.stage.update();
     });
@@ -52,6 +54,9 @@ class Simulation {
   resize() {
     this.stage.canvas.width = window.innerWidth;
     this.stage.canvas.height = window.innerHeight;
+  }
+  applyBackgroundColor(canvas) {
+    document.getElementById(canvas).style.backgroundColor = this.theme.backgroundColor;
   }
 }
 
@@ -197,7 +202,7 @@ class Agent {
     if (renderer && !this.circle) {
       this.circle = new createjs.Shape();
       renderer.stage.addChild(this.circle);
-      this.circle.graphics.beginFill('#96e7ac').drawCircle(0, 0, r);
+      this.circle.graphics.beginFill(renderer.theme.agentBodyColor).drawCircle(0, 0, r);
     }
     if (this.isActive) {
       this.circle.x = this.position.x;
@@ -278,14 +283,14 @@ class Edible {
   constructor({ isActive = true, position }) {
     this.isActive = isActive;
     this.position = position;
-    this.color = '#222';
+    this.color = '#000';
     this.size = 3;
   }
   render(entities, renderer) {
     if (renderer && !this.circle) {
       this.circle = new createjs.Shape();
       renderer.stage.addChild(this.circle);
-      this.circle.graphics.beginFill(this.color).drawCircle(0, 0, this.size);
+      this.circle.graphics.beginFill(this.getColor(renderer.theme)).drawCircle(0, 0, this.size);
     }
     if (this.isActive) {
       this.circle.x = this.position.x;
@@ -302,6 +307,9 @@ class Food extends Edible {
     this.color = '#0da5bd';
     this.size = 4;
   }
+  getColor(theme) {
+    return theme.foodColor;
+  }
 }
 
 class Poison extends Edible {
@@ -309,6 +317,9 @@ class Poison extends Edible {
     super(opts);
     this.color = '#eb504c';
     this.size = 3;
+  }
+  getColor(theme) {
+    return theme.poisonColor;
   }
 }
 
@@ -329,10 +340,31 @@ class Util {
   }
 }
 
+class Theme {
+  static get(theme) {
+    const themes = {
+      circus: {
+        backgroundColor: '#000',
+        foodColor: '#0da5bd',
+        poisonColor: '#eb504c',
+        agentBodyColor: '#96e7ac'
+      },
+      bloop: {
+        backgroundColor: '#111116',
+        foodColor: '#00f4b6',
+        poisonColor: '#bf4fff',
+        agentBodyColor: '#3de1ff'
+      }
+    };
+    return themes[theme];
+  }
+}
+
 function init() {
   const sim = new Simulation({
     canvas: 'main-canvas',
     framerate: 30,
+    theme: 'bloop',
     entityConfig: [
       { Entity: Agent, count: 10, opts: { age: 2 } },
       { Entity: Food, count: 15, opts: {} },
