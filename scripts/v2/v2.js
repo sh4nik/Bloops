@@ -5,22 +5,22 @@ class EntityProcessor {
     this.postStep = opts.postStep;
     this.entities = [];
   }
-  step({ renderer }) {
+  step({ renderer, dimensions }) {
     if (this.preStep) this.preStep(this.entities);
     this.entities = [...this.entities, ...this.incubator];
     this.incubator = [];
     this.entities = this.entities.filter(e => e.isActive);
     this.entities.forEach(e => {
-      if (e.step) e.step(this.entities, this.incubator, renderer.stage);
+      if (e.step) e.step(this.entities, this.incubator, dimensions);
       if (renderer && e.render) e.render(this.entities, renderer);
     });
     if (this.postStep) this.postStep(this.entities);
   }
-  static produceEntities(entityConfig, stage) {
+  static produceEntities(entityConfig, dimensions) {
     const entities = [];
     entityConfig.forEach(({ Entity, count, opts }) => {
       for (let i = 0; i < count; i++) {
-        opts.position = _p5.createVector(Util.random(stage.canvas.width), Util.random(stage.canvas.height));
+        opts.position = _p5.createVector(Util.random(dimensions.width), Util.random(dimensions.height));
         entities.push(new Entity(opts));
       }
     });
@@ -32,8 +32,9 @@ class Simulation {
   constructor({ canvas, entityConfig, framerate }) {
     this.stage = new createjs.Stage(canvas);
     this.resize();
+    this.dimensions = { width: this.stage.canvas.width, height: this.stage.canvas.height };
     this.ep = new EntityProcessor({
-      entities: EntityProcessor.produceEntities(entityConfig, this.stage),
+      entities: EntityProcessor.produceEntities(entityConfig, this.dimensions),
       preStep: function (entities) { },
       postStep: function (entities) { }
     });
@@ -44,7 +45,7 @@ class Simulation {
     this.render();
     createjs.Ticker.addEventListener('tick', () => {
       const renderer = { stage: this.stage };
-      this.ep.step({ renderer });
+      this.ep.step({ renderer, dimensions: this.dimensions });
       this.stage.update();
     });
   }
@@ -199,9 +200,9 @@ class Agent {
       midLayerNodes: 4
     });
   }
-  step(entities, incubator, stage) {
+  step(entities, incubator, dimensions) {
     this.updateMovement();
-    Util.wrapAround(this.position, stage);
+    Util.wrapAround(this.position, dimensions);
     this.updateStats();
     let env = this.prepEnvironment(entities);
     this.brain.compute(this, entities, env);
@@ -220,7 +221,6 @@ class Agent {
     } else {
       renderer.stage.removeChild(this.circle);
     }
-
   }
   updateMovement() {
     this.velocity.add(this.acceleration);
@@ -337,11 +337,11 @@ class Util {
       return entity.position.dist(curr.position) < entity.position.dist(prev.position) || entity === prev ? curr : prev;;
     });
   }
-  static wrapAround(vector, stage) {
-    if (vector.x < 0) vector.x = stage.canvas.width;
-    if (vector.y < 0) vector.y = stage.canvas.height;
-    if (vector.x > stage.canvas.width) vector.x = 0;
-    if (vector.y > stage.canvas.height) vector.y = 0;
+  static wrapAround(vector, dimensions) {
+    if (vector.x < 0) vector.x = dimensions.width;
+    if (vector.y < 0) vector.y = dimensions.height;
+    if (vector.x > dimensions.width) vector.x = 0;
+    if (vector.y > dimensions.height) vector.y = 0;
   }
 }
 
