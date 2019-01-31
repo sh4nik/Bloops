@@ -305,7 +305,7 @@ class Food extends Edible {
   constructor(opts) {
     super(opts);
     this.color = '#0da5bd';
-    this.size = 4;
+    this.size = 3;
   }
   getColor(theme) {
     return theme.foodColor;
@@ -350,7 +350,7 @@ class Theme {
         agentBodyColor: '#96e7ac'
       },
       bloop: {
-        backgroundColor: '#111116',
+        backgroundColor: '#000006',
         foodColor: '#00f4b6',
         poisonColor: '#bf4fff',
         agentBodyColor: '#3de1ff'
@@ -363,7 +363,7 @@ class Theme {
 function init() {
   const sim = new Simulation({
     canvas: 'main-canvas',
-    framerate: 30,
+    framerate: 60,
     theme: 'bloop',
     entityConfig: [
       { Entity: Agent, count: 10, opts: { age: 2 } },
