@@ -9,11 +9,11 @@ class EntityProcessor {
     if (this.preStep) this.preStep(this.entities);
     this.entities = [...this.entities, ...this.incubator];
     this.incubator = [];
-    this.entities = this.entities.filter(e => e.isActive);
     this.entities.forEach(e => {
       if (e.step) e.step(this.entities, this.incubator, dimensions);
-      if (renderer && e.render) e.render(this.entities, renderer);
+      if (renderer) e.render(this.entities, renderer);
     });
+    this.entities = this.entities.filter(e => e.isActive);
     if (this.postStep) this.postStep(this.entities);
   }
   static produceEntities(entityConfig, dimensions) {
@@ -172,11 +172,13 @@ class Agent {
     matingRate = 0.002,
     mutationRate = 0.001,
     health = 500,
+    size = 6,
     brain
   }) {
     this.isActive = isActive;
     this.age = age;
     this.health = health;
+    this.size = size;
     this.maxSpeed = 4;
     this.position = position;
     this.velocity = _p5.createVector(0, 0);
@@ -190,25 +192,25 @@ class Agent {
     });
   }
   step(entities, incubator, dimensions) {
-    this.updateMovement();
-    Util.wrapAround(this.position, dimensions);
+    const env = this.prepEnvironment(entities);
     this.updateStats();
-    let env = this.prepEnvironment(entities);
-    this.brain.compute(this, entities, env);
+    this.updateMovement();
+    this.think(env);
+    this.attemptToEat(env.nearestEdible);
     this.handleMating(env.agents, incubator);
+    Util.wrapAround(this.position, dimensions);
   }
   render(entities, renderer) {
-    let r = 5;
-    if (renderer && !this.circle) {
-      this.circle = new createjs.Shape();
-      renderer.stage.addChild(this.circle);
-      this.circle.graphics.beginFill(renderer.theme.agentBodyColor).drawCircle(0, 0, r);
+    if (renderer && !this.shape) {
+      this.shape = new createjs.Shape();
+      renderer.stage.addChild(this.shape);
+      this.shape.graphics.beginFill(renderer.theme.agentBodyColor).drawCircle(0, 0, this.size);
     }
     if (this.isActive) {
-      this.circle.x = this.position.x;
-      this.circle.y = this.position.y;
+      this.shape.x = this.position.x;
+      this.shape.y = this.position.y;
     } else {
-      renderer.stage.removeChild(this.circle);
+      renderer.stage.removeChild(this.shape);
     }
   }
   updateMovement() {
@@ -216,10 +218,18 @@ class Agent {
     this.velocity.limit(this.maxSpeed);
     this.position.add(this.velocity);
   }
+  think(env) {
+    this.brain.compute(this, this.entities, env);
+  }
   updateStats() {
     this.age += 1;
     this.health -= 1;
-    if (this.health === 0) this.isActive = false;
+    if (this.health <= 0) this.isActive = false;
+  }
+  attemptToEat(edible) {
+    if (Util.checkCollision(this, edible)) {
+      this.health += edible.eat();
+    }
   }
   handleMating(agents, incubator) {
     if (Util.random(1) < this.matingRate) {
@@ -283,29 +293,34 @@ class Edible {
   constructor({ isActive = true, position }) {
     this.isActive = isActive;
     this.position = position;
-    this.color = '#000';
-    this.size = 3;
+    this.size = 4;
+    this.healthImpact = 0;
   }
   render(entities, renderer) {
-    if (renderer && !this.circle) {
-      this.circle = new createjs.Shape();
-      renderer.stage.addChild(this.circle);
-      this.circle.graphics.beginFill(this.getColor(renderer.theme)).drawCircle(0, 0, this.size);
+    if (renderer && !this.shape) {
+      this.shape = new createjs.Shape();
+      renderer.stage.addChild(this.shape);
+      this.shape.graphics.beginFill(this.getColor(renderer.theme)).drawCircle(0, 0, this.size);
     }
     if (this.isActive) {
-      this.circle.x = this.position.x;
-      this.circle.y = this.position.y;
+      this.shape.x = this.position.x;
+      this.shape.y = this.position.y;
     } else {
-      renderer.stage.removeChild(this.circle);
+      console.log('Removing graphic...');
+      renderer.stage.removeChild(this.shape);
     }
+  }
+  eat() {
+    console.log('Eating...');
+    this.isActive = false;
+    return this.healthImpact;
   }
 }
 
 class Food extends Edible {
   constructor(opts) {
     super(opts);
-    this.color = '#0da5bd';
-    this.size = 3;
+    this.healthImpact = 100;
   }
   getColor(theme) {
     return theme.foodColor;
@@ -315,8 +330,7 @@ class Food extends Edible {
 class Poison extends Edible {
   constructor(opts) {
     super(opts);
-    this.color = '#eb504c';
-    this.size = 3;
+    this.healthImpact = -100;
   }
   getColor(theme) {
     return theme.poisonColor;
@@ -337,6 +351,9 @@ class Util {
     if (vector.y < 0) vector.y = dimensions.height;
     if (vector.x > dimensions.width) vector.x = 0;
     if (vector.y > dimensions.height) vector.y = 0;
+  }
+  static checkCollision(obj1, obj2) {
+    return obj1.position.dist(obj2.position) < (obj1.size) + (obj2.size);
   }
 }
 
@@ -363,12 +380,12 @@ class Theme {
 function init() {
   const sim = new Simulation({
     canvas: 'main-canvas',
-    framerate: 60,
-    theme: 'bloop',
+    framerate: 30,
+    theme: 'circus',
     entityConfig: [
-      { Entity: Agent, count: 10, opts: { age: 2 } },
-      { Entity: Food, count: 15, opts: {} },
-      { Entity: Poison, count: 15, opts: {} }
+      { Entity: Agent, count: 1, opts: { age: 2 } },
+      { Entity: Food, count: 150, opts: {} },
+      { Entity: Poison, count: 150, opts: {} }
     ]
   });
   sim.run();
