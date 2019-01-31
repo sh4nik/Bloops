@@ -270,7 +270,7 @@ class Agent {
   }
   prepEnvironment(entities) {
     let agents = entities.filter(e => e instanceof Agent);
-    let edibles = entities.filter(e => e instanceof Food || e instanceof Poison);
+    let edibles = entities.filter(e => e instanceof Edible);
     let nearestAgent = Util.findNearest(this, agents);
     let nearestEdible = Util.findNearest(this, edibles);
     let desiredVectorToAgent = p5.Vector.sub(nearestAgent.position, this.position);
