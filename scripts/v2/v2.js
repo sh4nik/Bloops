@@ -67,16 +67,16 @@ let Inputs = {
       return env.nearestAgentVector.y;
     }
   },
-  nearestFoodX: {
-    displayName: 'Nearest Food X',
+  nearestEdibleX: {
+    displayName: 'Nearest Edible X',
     process: (env, agent, entities) => {
-      return env.nearestFoodVector.x;
+      return env.nearestEdibleVector.x;
     }
   },
-  nearestFoodY: {
-    displayName: 'Nearest Food Y',
+  nearestEdibleY: {
+    displayName: 'Nearest Edible Y',
     process: (env, agent, entities) => {
-      return env.nearestFoodVector.y;
+      return env.nearestEdibleVector.y;
     }
   }
 };
@@ -194,7 +194,7 @@ class Agent {
     this.matingRate = matingRate;
     this.mutationRate = mutationRate;
     this.brain = brain || new Brain({
-      inputs: ['nearestAgentX', 'nearestAgentY', 'nearestFoodX', 'nearestFoodY'],
+      inputs: ['nearestAgentX', 'nearestAgentY', 'nearestEdibleX', 'nearestEdibleY'],
       outputs: ['desiredForceX', 'desiredForceY'],
       midLayerNodes: 4
     });
@@ -270,37 +270,38 @@ class Agent {
   }
   prepEnvironment(entities) {
     let agents = entities.filter(e => e instanceof Agent);
-    let food = entities.filter(e => e instanceof Food || e instanceof Poison);
+    let edibles = entities.filter(e => e instanceof Food || e instanceof Poison);
     let nearestAgent = Util.findNearest(this, agents);
-    let nearestFood = Util.findNearest(this, food);
+    let nearestEdible = Util.findNearest(this, edibles);
     let desiredVectorToAgent = p5.Vector.sub(nearestAgent.position, this.position);
     let nearestAgentVector = p5.Vector.sub(desiredVectorToAgent, this.velocity);
     nearestAgentVector.normalize();
-    let desiredVectorToFood = p5.Vector.sub(nearestFood.position, this.position);
-    let nearestFoodVector = p5.Vector.sub(desiredVectorToFood, this.velocity);
-    nearestFoodVector.normalize();
+    let desiredVectorToEdible = p5.Vector.sub(nearestEdible.position, this.position);
+    let nearestEdibleVector = p5.Vector.sub(desiredVectorToEdible, this.velocity);
+    nearestEdibleVector.normalize();
     return {
       agents,
-      food,
+      edibles,
       nearestAgent,
-      nearestFood,
+      nearestEdible,
       nearestAgentVector,
-      nearestFoodVector
+      nearestEdibleVector
     };
   }
 }
 
-class Food {
+class Edible {
   constructor({ isActive = true, position }) {
     this.isActive = isActive;
     this.position = position;
+    this.color = '#eb504c';
+    this.size = 3;
   }
   render(entities, renderer) {
-    let r = 3;
     if (renderer && !this.circle) {
       this.circle = new createjs.Shape();
       renderer.stage.addChild(this.circle);
-      this.circle.graphics.beginFill('#eb504c').drawCircle(0, 0, r);
+      this.circle.graphics.beginFill(this.color).drawCircle(0, 0, this.size);
     }
     if (this.isActive) {
       this.circle.x = this.position.x;
@@ -311,24 +312,19 @@ class Food {
   }
 }
 
-class Poison {
-  constructor({ isActive = true, position }) {
-    this.isActive = isActive;
-    this.position = position;
+class Food extends Edible {
+  constructor(opts) {
+    super(opts);
+    this.color = '#0da5bd';
+    this.size = 4;
   }
-  render(entities, renderer) {
-    let r = 3;
-    if (renderer && !this.circle) {
-      this.circle = new createjs.Shape();
-      renderer.stage.addChild(this.circle);
-      this.circle.graphics.beginFill('#0da5bd').drawCircle(0, 0, r);
-    }
-    if (this.isActive) {
-      this.circle.x = this.position.x;
-      this.circle.y = this.position.y;
-    } else {
-      renderer.stage.removeChild(this.circle);
-    }
+}
+
+class Poison extends Edible {
+  constructor(opts) {
+    super(opts);
+    this.color = '#eb504c';
+    this.size = 3;
   }
 }
 
@@ -352,7 +348,7 @@ class Util {
 function init() {
   const sim = new Simulation({
     canvas: 'main-canvas',
-    framerate: 60,
+    framerate: 30,
     entityConfig: [
       { Entity: Agent, count: 10, opts: { age: 2 } },
       { Entity: Food, count: 15, opts: {} },
