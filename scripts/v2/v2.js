@@ -136,42 +136,26 @@ class Brain {
   }
   mutate() {
     let data = this.network.weights;
-    var iswap1 = Math.floor(Util.random() * data.length);
-    var iswap2 = Math.floor(Util.random() * data.length);
-
-    if (iswap1 == iswap2) {
-      if (iswap1 > 0) {
-        iswap1--;
-      } else {
-        iswap1++;
-      }
-    }
-    var t = data[iswap1];
-    data[iswap1] = data[iswap2];
-    data[iswap2] = t;
+    let swap1 = Math.floor(Util.random() * data.length);
+    let swap2 = Math.floor(Util.random() * data.length);
+    swap1 == swap2 && swap1 > 0 ? swap1-- : swap1++;
+    let temp = data[swap1];
+    data[swap1] = data[swap2];
+    data[swap2] = temp;
   }
   static crossover(fatherArray, motherArray) {
-    var len = motherArray.length;
-    var cl = Math.floor(len / 3);
-    var ca = cl;
-    var cb = ca + cl;
+    let len = motherArray.length;
+    let cl = Math.floor(len / 3);
+    let ca = cl;
+    let cb = ca + cl;
     if (ca > cb) {
-      var tmp = cb;
+      let tmp = cb;
       cb = ca;
       ca = tmp;
     }
-    var child1ArrayTemp = [];
-    child1ArrayTemp = child1ArrayTemp.concat(fatherArray.slice(0, ca));
-    child1ArrayTemp = child1ArrayTemp.concat(motherArray.slice(ca, cb));
-    child1ArrayTemp = child1ArrayTemp.concat(fatherArray.slice(cb, len));
-    var child2ArrayTemp = [];
-    child2ArrayTemp = child2ArrayTemp.concat(motherArray.slice(0, ca));
-    child2ArrayTemp = child2ArrayTemp.concat(fatherArray.slice(ca, cb));
-    child2ArrayTemp = child2ArrayTemp.concat(motherArray.slice(cb, len));
-    let children = [];
-    children.push(child1ArrayTemp);
-    children.push(child2ArrayTemp);
-    return children;
+    let child1 = [...fatherArray.slice(0, ca), ...motherArray.slice(ca, cb), ...fatherArray.slice(cb, len)];
+    var child2 = [...motherArray.slice(0, ca), ...fatherArray.slice(ca, cb), ...motherArray.slice(cb, len)];
+    return [child1, child2];
   }
 }
 
@@ -294,7 +278,7 @@ class Edible {
   constructor({ isActive = true, position }) {
     this.isActive = isActive;
     this.position = position;
-    this.color = '#eb504c';
+    this.color = '#222';
     this.size = 3;
   }
   render(entities, renderer) {
@@ -334,7 +318,7 @@ class Util {
   }
   static findNearest(entity, entities) {
     return entities.reduce((prev, curr) => {
-      return entity.position.dist(curr.position) < entity.position.dist(prev.position) || entity === prev ? curr : prev;;
+      return entity.position.dist(curr.position) < entity.position.dist(prev.position) || entity === prev ? curr : prev;
     });
   }
   static wrapAround(vector, dimensions) {
