@@ -381,9 +381,9 @@ function init() {
     framerate: 30,
     theme: 'circus',
     entityConfig: [
-      { Entity: Agent, count: 1, opts: { age: 2 } },
-      { Entity: Food, count: 150, opts: {} },
-      { Entity: Poison, count: 150, opts: {} }
+      { Entity: Agent, count: 10, opts: { age: 2 } },
+      { Entity: Food, count: 15, opts: {} },
+      { Entity: Poison, count: 15, opts: {} }
     ]
   });
   sim.run();
