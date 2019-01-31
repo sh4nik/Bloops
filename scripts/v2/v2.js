@@ -306,12 +306,10 @@ class Edible {
       this.shape.x = this.position.x;
       this.shape.y = this.position.y;
     } else {
-      console.log('Removing graphic...');
       renderer.stage.removeChild(this.shape);
     }
   }
   eat() {
-    console.log('Eating...');
     this.isActive = false;
     return this.healthImpact;
   }
