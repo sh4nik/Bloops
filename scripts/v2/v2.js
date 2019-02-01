@@ -129,7 +129,7 @@ class Brain {
       this.network.randomize();
     }
   }
-  compute(agent, entities, env) {
+  compute(env, agent, entities) {
     let inputValues = this.inputs.map(i => Inputs[i].process(env, agent, entities));
     let outputValues = [];
     this.network.compute(inputValues, outputValues);
@@ -209,7 +209,7 @@ class Agent {
     const env = this.prepEnvironment(entities);
     this.updateStats();
     this.updateMovement();
-    this.think(env);
+    this.think(env, entities);
     if (env.nearestEdible) this.attemptToEat(env.nearestEdible);
     this.handleMating(env.agents, incubator);
     Util.wrapAround(this.position, dimensions);
@@ -232,8 +232,8 @@ class Agent {
     this.velocity.limit(this.maxSpeed);
     this.position.add(this.velocity);
   }
-  think(env) {
-    this.brain.compute(this, this.entities, env);
+  think(env, entities) {
+    this.brain.compute(env, this, entities);
   }
   updateStats() {
     this.age += 1;
