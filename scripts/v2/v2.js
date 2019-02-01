@@ -1,13 +1,13 @@
 class EntityProcessor {
-  constructor({entityConfig, dimensions}) {
+  constructor({ entityConfig, dimensions }) {
     this.dimensions = dimensions;
     this.config = entityConfig;
-    this.incubator = [...this.produceEntities(this.config, this.dimensions)];
     this.entities = [];
+    this.incubator = [];
   }
   step({ renderer }) {
     this.entities = [...this.entities, ...this.incubator];
-    this.incubator = [];
+    this.incubator = this.produceEntities();
     this.entities.forEach(e => {
       if (e.step) e.step(this.entities, this.incubator, this.dimensions);
     });
@@ -18,13 +18,14 @@ class EntityProcessor {
     }
     this.entities = this.entities.filter(e => e.isActive);
   }
-  produceEntities(config, dimensions) {
+  produceEntities() {
     const entities = [];
-    config.forEach(({ Entity, count, opts }) => {
-      for (let i = 0; i < count; i++) {
+    this.config.forEach(({ Entity, max, min, opts }) => {
+      const existingEntities = this.entities.filter(e => e instanceof Entity);
+      for (let i = existingEntities.length; i < max; i++) {
         opts.position = _p5.createVector(
-          Util.random(dimensions.width),
-          Util.random(dimensions.height)
+          Util.random(this.dimensions.width),
+          Util.random(this.dimensions.height)
         );
         entities.push(new Entity(opts));
       }
@@ -96,13 +97,13 @@ let Outputs = {
   desiredForceX: {
     displayName: 'Desired Force X',
     process: (val, agent) => {
-      agent.applyForce(_p5.createVector(val, 0));
+      agent.applyForce(_p5.createVector(val, 0).mult(agent.maxSpeed));
     }
   },
   desiredForceY: {
     displayName: 'Desired Force Y',
     process: (val, agent) => {
-      agent.applyForce(_p5.createVector(0, val));
+      agent.applyForce(_p5.createVector(0, val).mult(agent.maxSpeed));
     }
   }
 };
@@ -194,9 +195,9 @@ class Agent {
     this.matingRate = matingRate;
     this.mutationRate = mutationRate;
     this.brain = brain || new Brain({
-      inputs: ['nearestAgentX', 'nearestAgentY', 'nearestEdibleX', 'nearestEdibleY'],
+      inputs: ['nearestEdibleX', 'nearestEdibleY'],
       outputs: ['desiredForceX', 'desiredForceY'],
-      midLayerNodes: 4
+      midLayerNodes: 2
     });
   }
   step(entities, incubator, dimensions) {
@@ -204,6 +205,7 @@ class Agent {
     this.updateStats();
     this.updateMovement();
     this.think(env, entities);
+    // this.seek(env.nearestEdible);
     if (env.nearestEdible) this.attemptToEat(env.nearestEdible);
     this.handleMating(env.agents, incubator);
     Util.wrapAround(this.position, dimensions);
@@ -229,9 +231,16 @@ class Agent {
   think(env, entities) {
     this.brain.compute(env, this, entities);
   }
+  seek(target) {
+    let desired = p5.Vector.sub(target.position, this.position);
+    desired.normalize();
+    desired.mult(this.maxSpeed);
+    let steer = p5.Vector.sub(desired, this.velocity);
+    this.applyForce(steer);
+  }
   updateStats() {
     this.age += 1;
-    this.health -= 1;
+    this.health -= 2;
     if (this.health <= 0) this.isActive = false;
   }
   attemptToEat(edible) {
@@ -334,7 +343,7 @@ class Edible {
 class Food extends Edible {
   constructor(opts) {
     super(opts);
-    this.healthImpact = 100;
+    this.healthImpact = 1000;
   }
   getColor(theme) {
     return theme.foodColor;
@@ -344,7 +353,7 @@ class Food extends Edible {
 class Poison extends Edible {
   constructor(opts) {
     super(opts);
-    this.healthImpact = -100;
+    this.healthImpact = 1000;
   }
   getColor(theme) {
     return theme.poisonColor;
@@ -399,8 +408,8 @@ function init() {
     theme: 'circus',
     entityConfig: [
       { Entity: Agent, count: 10, max: 20, min: 1, opts: {} },
-      { Entity: Food, count: 15, max: 20, min: 15, opts: {} },
-      { Entity: Poison, count: 15, max: 20, min: 15, opts: {} }
+      { Entity: Food, count: 15, max: 30, min: 15, opts: {} },
+      { Entity: Poison, count: 15, max: 30, min: 15, opts: {} }
     ]
   });
   sim.run();
