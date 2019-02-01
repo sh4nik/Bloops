@@ -354,7 +354,7 @@ class Food extends Edible {
 class Poison extends Edible {
   constructor(opts) {
     super(opts);
-    this.healthImpact = 1000;
+    this.healthImpact = -1000;
   }
   getColor(theme) {
     return theme.poisonColor;
@@ -409,8 +409,8 @@ function init() {
     theme: 'circus',
     entityConfig: [
       { Entity: Agent, count: 10, max: 20, min: 1, opts: {} },
-      { Entity: Food, count: 15, max: 30, min: 15, opts: {} },
-      { Entity: Poison, count: 15, max: 30, min: 15, opts: {} }
+      { Entity: Food, count: 15, max: 60, min: 15, opts: {} },
+      // { Entity: Poison, count: 15, max: 30, min: 15, opts: {} }
     ]
   });
   sim.run();
