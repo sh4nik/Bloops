@@ -1,16 +1,15 @@
 class EntityProcessor {
-  constructor(opts) {
-    this.incubator = [...opts.entities] || [];
-    this.preStep = opts.preStep;
-    this.postStep = opts.postStep;
+  constructor({entityConfig, dimensions}) {
+    this.dimensions = dimensions;
+    this.config = entityConfig;
+    this.incubator = [...this.produceEntities(this.config, this.dimensions)];
     this.entities = [];
   }
-  step({ renderer, dimensions }) {
-    if (this.preStep) this.preStep(this.entities, this.incubator);
+  step({ renderer }) {
     this.entities = [...this.entities, ...this.incubator];
     this.incubator = [];
     this.entities.forEach(e => {
-      if (e.step) e.step(this.entities, this.incubator, dimensions);
+      if (e.step) e.step(this.entities, this.incubator, this.dimensions);
     });
     if (renderer) {
       this.entities.forEach(e => {
@@ -18,11 +17,10 @@ class EntityProcessor {
       });
     }
     this.entities = this.entities.filter(e => e.isActive);
-    if (this.postStep) this.postStep(this.entities, this.incubator);
   }
-  static produceEntities(entityConfig, dimensions) {
+  produceEntities(config, dimensions) {
     const entities = [];
-    entityConfig.forEach(({ Entity, count, opts }) => {
+    config.forEach(({ Entity, count, opts }) => {
       for (let i = 0; i < count; i++) {
         opts.position = _p5.createVector(
           Util.random(dimensions.width),
@@ -47,11 +45,7 @@ class Simulation {
       width: this.renderer.stage.canvas.width,
       height: this.renderer.stage.canvas.height
     };
-    this.ep = new EntityProcessor({
-      entities: EntityProcessor.produceEntities(entityConfig, this.dimensions),
-      preStep: function (entities, incubator) { },
-      postStep: function (entities, incubator) { }
-    });
+    this.ep = new EntityProcessor({ entityConfig, dimensions: this.dimensions });
     createjs.Ticker.framerate = framerate;
   }
   render() { }
@@ -404,9 +398,9 @@ function init() {
     framerate: 30,
     theme: 'circus',
     entityConfig: [
-      { Entity: Agent, count: 100, opts: { age: 2 } },
-      { Entity: Food, count: 100, opts: {} },
-      { Entity: Poison, count: 15, opts: {} }
+      { Entity: Agent, count: 10, max: 20, min: 1, opts: {} },
+      { Entity: Food, count: 15, max: 20, min: 15, opts: {} },
+      { Entity: Poison, count: 15, max: 20, min: 15, opts: {} }
     ]
   });
   sim.run();
