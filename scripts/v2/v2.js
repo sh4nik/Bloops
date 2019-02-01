@@ -14,7 +14,7 @@ class EntityProcessor {
     });
     if (renderer) {
       this.entities.forEach(e => {
-        e.render(this.entities, renderer);
+        if (e.render) e.render(this.entities, renderer);
       });
     }
     this.entities = this.entities.filter(e => e.isActive);
@@ -33,11 +33,11 @@ class EntityProcessor {
 }
 
 class Simulation {
-  constructor({ canvas, entityConfig, framerate, theme }) {
-    this.stage = new createjs.Stage(canvas);
+  constructor({ canvasId, entityConfig, framerate, theme }) {
+    this.stage = new createjs.Stage(canvasId);
     this.theme = Theme.get(theme);
     this.resize();
-    this.applyBackgroundColor(canvas);
+    this.applyBackgroundColor(canvasId);
     this.dimensions = { width: this.stage.canvas.width, height: this.stage.canvas.height };
     this.ep = new EntityProcessor({
       entities: EntityProcessor.produceEntities(entityConfig, this.dimensions),
@@ -59,8 +59,8 @@ class Simulation {
     this.stage.canvas.width = window.innerWidth;
     this.stage.canvas.height = window.innerHeight;
   }
-  applyBackgroundColor(canvas) {
-    document.getElementById(canvas).style.backgroundColor = this.theme.backgroundColor;
+  applyBackgroundColor(canvasId) {
+    document.getElementById(canvasId).style.backgroundColor = this.theme.backgroundColor;
   }
 }
 
@@ -68,25 +68,25 @@ let Inputs = {
   nearestAgentX: {
     displayName: 'Nearest Agent X',
     process: (env, agent, entities) => {
-      return env.nearestAgentVector.x;
+      return env.nearestAgentVector ? env.nearestAgentVector.x : 0;
     }
   },
   nearestAgentY: {
     displayName: 'Nearest Agent Y',
     process: (env, agent, entities) => {
-      return env.nearestAgentVector.y;
+      return env.nearestAgentVector ? env.nearestAgentVector.y : 0;
     }
   },
   nearestEdibleX: {
     displayName: 'Nearest Edible X',
     process: (env, agent, entities) => {
-      return env.nearestEdibleVector.x;
+      return env.nearestEdibleVector ? env.nearestEdibleVector.x : 0;
     }
   },
   nearestEdibleY: {
     displayName: 'Nearest Edible Y',
     process: (env, agent, entities) => {
-      return env.nearestEdibleVector.y;
+      return env.nearestEdibleVector ? env.nearestEdibleVector.y : 0;
     }
   }
 };
@@ -116,8 +116,11 @@ class Brain {
       ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(), this.midLayerNodes, 1),
       ENCOG.BasicLayer.create(ENCOG.ActivationTANH.create(), this.outputs.length, 0)
     ]);
-    this.network.randomize();
-    if (weights) this.network.weights = weights;
+    if (weights) {
+      this.network.weights = weights;
+    } else {
+      this.network.randomize();
+    }
   }
   compute(agent, entities, env) {
     let inputValues = this.inputs.map(i => Inputs[i].process(env, agent, entities));
@@ -137,10 +140,10 @@ class Brain {
     return new Brain(this.extract());
   }
   mate(partnerBrain) {
-    let options = Brain.crossover(this.network.weights, partnerBrain.network.weights);
-    let newWeights = options[Util.random(1) < 0.5 ? 1 : 0];
+    let childOptions = Brain.crossover(this.network.weights, partnerBrain.network.weights);
+    let childWeights = childOptions[Util.random(1) < 0.5 ? 1 : 0];
     let childBrain = this.clone();
-    childBrain.network.weights = newWeights
+    childBrain.network.weights = childWeights;
     return childBrain;
   }
   mutate() {
@@ -152,18 +155,18 @@ class Brain {
     data[swap1] = data[swap2];
     data[swap2] = temp;
   }
-  static crossover(fatherArray, motherArray) {
-    let len = motherArray.length;
-    let cl = Math.floor(len / 3);
-    let ca = cl;
-    let cb = ca + cl;
-    if (ca > cb) {
-      let tmp = cb;
-      cb = ca;
-      ca = tmp;
+  static crossover(father, mother) {
+    let len = mother.length;
+    let cutLength = Math.floor(len / 3);
+    let cutA = cutLength;
+    let cutB = cutA + cutLength;
+    if (cutA > cutB) {
+      let tmp = cutB;
+      cutB = cutA;
+      cutA = tmp;
     }
-    let child1 = [...fatherArray.slice(0, ca), ...motherArray.slice(ca, cb), ...fatherArray.slice(cb, len)];
-    var child2 = [...motherArray.slice(0, ca), ...fatherArray.slice(ca, cb), ...motherArray.slice(cb, len)];
+    let child1 = [...father.slice(0, cutA), ...mother.slice(cutA, cutB), ...father.slice(cutB, len)];
+    var child2 = [...mother.slice(0, cutA), ...father.slice(cutA, cutB), ...mother.slice(cutB, len)];
     return [child1, child2];
   }
 }
@@ -173,7 +176,7 @@ class Agent {
     isActive = true,
     age = 0,
     position,
-    matingRate = 0.002,
+    matingRate = 0.001,
     mutationRate = 0.001,
     health = 500,
     size = 6,
@@ -200,7 +203,7 @@ class Agent {
     this.updateStats();
     this.updateMovement();
     this.think(env);
-    this.attemptToEat(env.nearestEdible);
+    if (env.nearestEdible) this.attemptToEat(env.nearestEdible);
     this.handleMating(env.agents, incubator);
     Util.wrapAround(this.position, dimensions);
   }
@@ -273,21 +276,29 @@ class Agent {
   }
   prepEnvironment(entities) {
     let agents = entities.filter(e => e instanceof Agent);
+    let nearestAgent = null;
+    let nearestAgentVector = null;
+    if (agents.length) {
+      nearestAgent = Util.findNearest(this, agents);
+      let desiredVectorToAgent = p5.Vector.sub(nearestAgent.position, this.position);
+      nearestAgentVector = p5.Vector.sub(desiredVectorToAgent, this.velocity);
+      nearestAgentVector.normalize();
+    }
     let edibles = entities.filter(e => e instanceof Edible);
-    let nearestAgent = Util.findNearest(this, agents);
-    let nearestEdible = Util.findNearest(this, edibles);
-    let desiredVectorToAgent = p5.Vector.sub(nearestAgent.position, this.position);
-    let nearestAgentVector = p5.Vector.sub(desiredVectorToAgent, this.velocity);
-    nearestAgentVector.normalize();
-    let desiredVectorToEdible = p5.Vector.sub(nearestEdible.position, this.position);
-    let nearestEdibleVector = p5.Vector.sub(desiredVectorToEdible, this.velocity);
-    nearestEdibleVector.normalize();
+    let nearestEdible = null;
+    let nearestEdibleVector = null;
+    if (edibles.length) {
+      nearestEdible = Util.findNearest(this, edibles);
+      let desiredVectorToEdible = p5.Vector.sub(nearestEdible.position, this.position);
+      nearestEdibleVector = p5.Vector.sub(desiredVectorToEdible, this.velocity);
+      nearestEdibleVector.normalize();
+    }
     return {
       agents,
-      edibles,
       nearestAgent,
-      nearestEdible,
       nearestAgentVector,
+      edibles,
+      nearestEdible,
       nearestEdibleVector
     };
   }
@@ -345,7 +356,8 @@ class Util {
   }
   static findNearest(entity, entities) {
     return entities.reduce((prev, curr) => {
-      return entity.position.dist(curr.position) < entity.position.dist(prev.position) || entity === prev ? curr : prev;
+      const currentIsCloser = entity.position.dist(curr.position) < entity.position.dist(prev.position);
+      return currentIsCloser || entity === prev ? curr : prev;
     });
   }
   static wrapAround(vector, dimensions) {
@@ -381,12 +393,12 @@ class Theme {
 
 function init() {
   const sim = new Simulation({
-    canvas: 'main-canvas',
+    canvasId: 'main-canvas',
     framerate: 30,
     theme: 'circus',
     entityConfig: [
-      { Entity: Agent, count: 10, opts: { age: 2 } },
-      { Entity: Food, count: 15, opts: {} },
+      { Entity: Agent, count: 100, opts: { age: 2 } },
+      { Entity: Food, count: 100, opts: {} },
       { Entity: Poison, count: 15, opts: {} }
     ]
   });
