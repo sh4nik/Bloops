@@ -24,7 +24,10 @@ class EntityProcessor {
     const entities = [];
     entityConfig.forEach(({ Entity, count, opts }) => {
       for (let i = 0; i < count; i++) {
-        opts.position = _p5.createVector(Util.random(dimensions.width), Util.random(dimensions.height));
+        opts.position = _p5.createVector(
+          Util.random(dimensions.width),
+          Util.random(dimensions.height)
+        );
         entities.push(new Entity(opts));
       }
     });
@@ -34,11 +37,16 @@ class EntityProcessor {
 
 class Simulation {
   constructor({ canvasId, entityConfig, framerate, theme }) {
-    this.stage = new createjs.Stage(canvasId);
-    this.theme = Theme.get(theme);
+    this.renderer = {
+      stage: new createjs.Stage(canvasId),
+      theme: Theme.get(theme)
+    };
     this.resize();
     this.applyBackgroundColor(canvasId);
-    this.dimensions = { width: this.stage.canvas.width, height: this.stage.canvas.height };
+    this.dimensions = {
+      width: this.renderer.stage.canvas.width,
+      height: this.renderer.stage.canvas.height
+    };
     this.ep = new EntityProcessor({
       entities: EntityProcessor.produceEntities(entityConfig, this.dimensions),
       preStep: function (entities) { },
@@ -50,17 +58,16 @@ class Simulation {
   run() {
     this.render();
     createjs.Ticker.addEventListener('tick', () => {
-      const renderer = { stage: this.stage, theme: this.theme };
-      this.ep.step({ renderer, dimensions: this.dimensions });
-      this.stage.update();
+      this.ep.step({ renderer: this.renderer, dimensions: this.dimensions });
+      this.renderer.stage.update();
     });
   }
   resize() {
-    this.stage.canvas.width = window.innerWidth;
-    this.stage.canvas.height = window.innerHeight;
+    this.renderer.stage.canvas.width = window.innerWidth;
+    this.renderer.stage.canvas.height = window.innerHeight;
   }
   applyBackgroundColor(canvasId) {
-    document.getElementById(canvasId).style.backgroundColor = this.theme.backgroundColor;
+    document.getElementById(canvasId).style.backgroundColor = this.renderer.theme.backgroundColor;
   }
 }
 
