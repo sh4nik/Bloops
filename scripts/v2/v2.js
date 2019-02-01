@@ -202,10 +202,11 @@ class Agent {
   }
   step(entities, incubator, dimensions) {
     const env = this.prepEnvironment(entities);
+    this.acceleration.mult(0);
     this.updateStats();
-    this.updateMovement();
     this.think(env, entities);
     // this.seek(env.nearestEdible);
+    this.updateMovement();
     if (env.nearestEdible) this.attemptToEat(env.nearestEdible);
     this.handleMating(env.agents, incubator);
     Util.wrapAround(this.position, dimensions);
