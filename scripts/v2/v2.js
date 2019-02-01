@@ -11,8 +11,12 @@ class EntityProcessor {
     this.incubator = [];
     this.entities.forEach(e => {
       if (e.step) e.step(this.entities, this.incubator, dimensions);
-      if (renderer) e.render(this.entities, renderer);
     });
+    if (renderer) {
+      this.entities.forEach(e => {
+        e.render(this.entities, renderer);
+      });
+    }
     this.entities = this.entities.filter(e => e.isActive);
     if (this.postStep) this.postStep(this.entities);
   }
