@@ -6,7 +6,7 @@ class EntityProcessor {
     this.entities = [];
   }
   step({ renderer, dimensions }) {
-    if (this.preStep) this.preStep(this.entities);
+    if (this.preStep) this.preStep(this.entities, this.incubator);
     this.entities = [...this.entities, ...this.incubator];
     this.incubator = [];
     this.entities.forEach(e => {
@@ -18,7 +18,7 @@ class EntityProcessor {
       });
     }
     this.entities = this.entities.filter(e => e.isActive);
-    if (this.postStep) this.postStep(this.entities);
+    if (this.postStep) this.postStep(this.entities, this.incubator);
   }
   static produceEntities(entityConfig, dimensions) {
     const entities = [];
@@ -49,8 +49,8 @@ class Simulation {
     };
     this.ep = new EntityProcessor({
       entities: EntityProcessor.produceEntities(entityConfig, this.dimensions),
-      preStep: function (entities) { },
-      postStep: function (entities) { }
+      preStep: function (entities, incubator) { },
+      postStep: function (entities, incubator) { }
     });
     createjs.Ticker.framerate = framerate;
   }
