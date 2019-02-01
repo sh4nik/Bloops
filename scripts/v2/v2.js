@@ -150,7 +150,7 @@ class Brain {
     let data = this.network.weights;
     let swap1 = Math.floor(Util.random() * data.length);
     let swap2 = Math.floor(Util.random() * data.length);
-    swap1 == swap2 && swap1 > 0 ? swap1-- : swap1++;
+    swap1 += (swap1 === swap2 && swap1 > 0) ? -1 : 1;
     let temp = data[swap1];
     data[swap1] = data[swap2];
     data[swap2] = temp;
