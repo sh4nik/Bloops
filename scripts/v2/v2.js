@@ -21,27 +21,28 @@ class EntityProcessor {
     this.entities = this.entities.filter(e => e.isActive);
   }
   limitPopulation() {
-    this.config.forEach(({ Entity, count, max, min, opts }) => {
-      const existingEntities = this.entities.filter(e => e instanceof Entity);
+    this.config.forEach(({ groupId, Entity, count, max, min, opts }) => {
+      const existingEntities = this.entities.filter(e => e instanceof Entity && e.groupId === groupId);
       if (existingEntities.length >= max) {
-        this.incubator = this.incubator.filter(e => !(e instanceof Entity));
+        this.incubator = this.incubator.filter(e => !(e instanceof Entity && e.groupId === groupId));
       }
     });
     return this.incubator;
   }
   produceEntities() {
     const entities = [];
-    this.config.forEach(({ Entity, count, max, min, opts }) => {
+    this.config.forEach(({ groupId, Entity, count, max, min, opts }) => {
       let limit = min;
       if (!this.initialized) {
         limit = count;
       }
-      const existingEntities = this.entities.filter(e => e instanceof Entity);
+      const existingEntities = this.entities.filter(e => e instanceof Entity && e.groupId === groupId);
       for (let i = existingEntities.length; i < limit; i++) {
         opts.position = _p5.createVector(
           Util.random(this.dimensions.width),
           Util.random(this.dimensions.height)
         );
+        opts.groupId = groupId;
         entities.push(new Entity(opts));
       }
     });
@@ -217,6 +218,7 @@ class Brain {
 class Agent {
   constructor({
     isActive = true,
+    groupId,
     age = 0,
     position,
     matingRate = 0.001,
@@ -231,6 +233,7 @@ class Agent {
     brain
   }) {
     this.isActive = isActive;
+    this.groupId = groupId;
     this.age = age;
     this.health = health;
     this.healthDrain = healthDrain;
@@ -378,8 +381,9 @@ class Agent {
 }
 
 class Edible {
-  constructor({ isActive = true, position }) {
+  constructor({ isActive = true, position, groupId }) {
     this.isActive = isActive;
+    this.groupId = groupId;
     this.position = position;
     this.size = 4;
     this.healthImpact = 0;
@@ -475,9 +479,10 @@ function init() {
     framerate: 30,
     theme: 'bloop',
     entityConfig: [
-      { Entity: Agent, count: 100, max: 100, min: 4, opts: {} },
-      { Entity: Poison, count: 15, max: 15, min: 15, opts: {} },
-      { Entity: Food, count: 30, max: 30, min: 15, opts: {} }
+      { groupId: 'normies', Entity: Agent, count: 100, max: 100, min: 4, opts: { size: 6 } },
+      { groupId: 'crazy', Entity: Agent, count: 1, max: 1, min: 1, opts: { size: 20 } },
+      { groupId: 'poison', Entity: Poison, count: 15, max: 15, min: 15, opts: {} },
+      { groupId: 'food', Entity: Food, count: 30, max: 30, min: 15, opts: {} }
     ]
   });
   sim.run();
