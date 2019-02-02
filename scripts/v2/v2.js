@@ -10,11 +10,13 @@ class EntityProcessor {
     this.incubator = this.limitPopulation();
     this.entities = [...this.entities, ...this.incubator];
     this.incubator = this.produceEntities();
-    this.entities.sort(a => a instanceof Agent ? 1 : -1);
     this.entities.forEach(e => {
       if (e.step) e.step(this.entities, this.incubator, this.dimensions);
     });
     if (renderer) {
+      this.entities.sort((a, b) => {
+        return a instanceof Agent ? 1 : -1;
+      });
       this.entities.forEach(e => {
         if (e.render) e.render(this.entities, renderer);
       });
@@ -214,7 +216,7 @@ class Agent {
       this.shape.x = this.position.x;
       this.shape.y = this.position.y;
       let bodyColor = this.isAgro ? renderer.theme.agroAgentBodyColor : renderer.theme.agentBodyColor;
-      this.shape.graphics.clear().beginFill(bodyColor).drawCircle(0, 0, this.size);
+      this.shape.graphics.clear().setStrokeStyle(3).beginStroke(renderer.theme.agentOutlineColor).beginFill(bodyColor).drawCircle(0, 0, this.size);
     } else {
       renderer.stage.removeChild(this.shape);
     }
@@ -338,7 +340,7 @@ class Edible {
     if (renderer && !this.shape) {
       this.shape = new createjs.Shape();
       renderer.stage.addChild(this.shape);
-      this.shape.graphics.beginFill(this.getColor(renderer.theme)).drawCircle(0, 0, this.size);
+      this.shape.graphics.setStrokeStyle(2).beginStroke(renderer.theme.edibleOutlineColor).beginFill(this.getColor(renderer.theme)).drawCircle(0, 0, this.size);
     }
     if (this.isActive) {
       this.shape.x = this.position.x;
@@ -472,15 +474,19 @@ class Theme {
         backgroundColor: '#000',
         foodColor: '#0da5bd',
         poisonColor: '#ff3838',
-        agentBodyColor: '#96e7ac',
-        agroAgentBodyColor: '#f47d42'
+        agentBodyColor: '#72ff83',
+        agentOutlineColor: '#000',
+        edileOutlineColor: '#000',
+        agroAgentBodyColor: '#ff803f'
       },
       bloop: {
-        backgroundColor: '#000006',
+        backgroundColor: '#223',
         foodColor: '#00f4b6',
         poisonColor: '#bf4fff',
         agentBodyColor: '#3de1ff',
-        agroAgentBodyColor: '#bb1133'
+        agentOutlineColor: '#000',
+        edibleOutlineColor: '#000',
+        agroAgentBodyColor: '#ff5588'
       }
     };
     return themes[theme];
@@ -488,14 +494,16 @@ class Theme {
 }
 
 function init() {
+  const eli = new Brain(JSON.parse('{"inputs":["nearestAgentX","nearestAgentY","nearestAgentIsAgro","nearestEdibleX","nearestEdibleY","nearestEdibleIsPoison"],"outputs":["desiredForceX","desiredForceY","acceleration","agro"],"midLayerNodes":8,"weights":[-0.6,-0.1,0.2,-0.1,0.9,0.2,-0.3,0,0.6,0.9,-0.9,0.5,0.8,-0.5,-0.3,-0.5,0,-0.3,0.6,-0.7,0.2,0.4,-0.3,-0.1,0.5,1,0.3,-0.1,0.8,0,-0.8,0.9,0.8,-0.3,0.8,0.3,0.9,0.4,-0.1,0.2,-0.9,0.1,0.5,-0.2,-0.6,0.4,0.4,0.2,-0.2,-0.2,0.7,-0.6,-0.3,-0.5,0.1,0.9,0.3,0.6,1,-0.5,-0.9,-0.6,0.5,-0.1,-0.8,-0.3,0.4,0.6,0.7,0.9,0.5,-0.2,0.8,-0.8,-0.5,-0.1,-0.7,-1,-0.4,-0.7,-0.1,0.2,0.9,0.4,-0.3,0.4,0.7,0.8,-1,-0.7,0,0.4]}'));
   const sim = new Simulation({
     canvasId: 'main-canvas',
     framerate: 30,
     theme: 'bloop',
     entityConfig: [
       { groupId: 'normies', Entity: Agent, count: 60, max: 100, min: 4, opts: { size: 8 } },
-      { groupId: 'poison', Entity: Poison, count: 25, opts: { healthImpact: -1000, size: 4 } },
-      { groupId: 'food', Entity: Food, count: 60, opts: { healthImpact: 500, size: 3 } }
+      { groupId: 'eli', Entity: Agent, count: 4, opts: { size: 8, brain: eli } },
+      { groupId: 'poison', Entity: Poison, count: 25, opts: { healthImpact: -1000, size: 5 } },
+      { groupId: 'food', Entity: Food, count: 60, opts: { healthImpact: 500, size: 4 } }
     ]
   });
   sim.run();
