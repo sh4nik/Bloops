@@ -106,6 +106,12 @@ let Inputs = {
     process: (env, agent, entities) => {
       return env.nearestEdibleVector ? env.nearestEdibleVector.y : 0;
     }
+  },
+  nearestEdibleIsPoison: {
+    displayName: 'Nearest Edible Food/Poison',
+    process: (env, agent, entities) => {
+      return env.nearestEdible instanceof Poison ? 1 : 0;
+    }
   }
 };
 
@@ -120,6 +126,12 @@ let Outputs = {
     displayName: 'Desired Force Y',
     process: (val, agent) => {
       agent.applyForce(_p5.createVector(0, val).mult(agent.maxSpeed));
+    }
+  },
+  acceleration: {
+    displayName: 'Acceleration',
+    process: (val, agent) => {
+      agent.applyForce(agent.acceleration.mult(val));
     }
   }
 };
@@ -213,8 +225,8 @@ class Agent {
     this.matingRate = matingRate;
     this.mutationRate = mutationRate;
     this.brain = brain || new Brain({
-      inputs: ['nearestEdibleX', 'nearestEdibleY'],
-      outputs: ['desiredForceX', 'desiredForceY'],
+      inputs: ['nearestEdibleX', 'nearestEdibleY', 'nearestEdibleIsPoison'],
+      outputs: ['desiredForceX', 'desiredForceY', 'acceleration'],
       midLayerNodes: 2
     });
   }
@@ -297,9 +309,12 @@ class Agent {
     return agents[index];
   }
   mate(partner) {
+    const position = this.position.copy();
+    position.x += 10;
+    position.y += 10;
     return new Agent({
       brain: this.brain.mate(partner.brain),
-      position: this.position.copy()
+      position
     });
   }
   prepEnvironment(entities) {
@@ -361,7 +376,7 @@ class Edible {
 class Food extends Edible {
   constructor(opts) {
     super(opts);
-    this.healthImpact = 1000;
+    this.healthImpact = 500;
   }
   getColor(theme) {
     return theme.foodColor;
@@ -371,7 +386,7 @@ class Food extends Edible {
 class Poison extends Edible {
   constructor(opts) {
     super(opts);
-    this.healthImpact = -1000;
+    this.healthImpact = -1500;
   }
   getColor(theme) {
     return theme.poisonColor;
@@ -434,11 +449,11 @@ function init() {
   const sim = new Simulation({
     canvasId: 'main-canvas',
     framerate: 30,
-    theme: 'circus',
+    theme: 'bloop',
     entityConfig: [
-      { Entity: Agent, count: 10, max: 100, min: 1, opts: opts.agent },
-      { Entity: Food, count: 15, max: 60, min: 15, opts: opts.edible },
-      // { Entity: Poison, count: 15, max: 30, min: 15, opts: opts.edible }
+      { Entity: Agent, count: 50, max: 100, min: 2, opts: opts.agent },
+      { Entity: Food, count: 30, max: 30, min: 30, opts: opts.edible },
+      { Entity: Poison, count: 15, max: 15, min: 15, opts: opts.edible }
     ]
   });
   sim.run();
