@@ -14,9 +14,6 @@ class EntityProcessor {
       if (e.step) e.step(this.entities, this.incubator, this.dimensions);
     });
     if (renderer) {
-      this.entities.sort((a, b) => {
-        return a instanceof Agent ? 1 : -1;
-      });
       this.entities.forEach(e => {
         if (e.render) e.render(this.entities, renderer);
       });
@@ -341,6 +338,7 @@ class Edible {
       this.shape = new createjs.Shape();
       renderer.stage.addChild(this.shape);
       this.shape.graphics.setStrokeStyle(2).beginStroke(renderer.theme.edibleOutlineColor).beginFill(this.getColor(renderer.theme)).drawCircle(0, 0, this.size);
+      renderer.stage.setChildIndex( this.shape, 0);
     }
     if (this.isActive) {
       this.shape.x = this.position.x;
