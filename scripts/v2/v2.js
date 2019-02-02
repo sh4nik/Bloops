@@ -98,7 +98,7 @@ let Inputs = {
   nearestAgentIsAgro: {
     displayName: 'Nearest Agent Agro/Peaceful',
     process: (env, agent, entities) => {
-      return env.nearestAgent.isAgro ? 1 : 0;
+      return env.nearestAgent.isAgro ? 1 : -1;
     }
   },
   nearestEdibleX: {
@@ -116,7 +116,7 @@ let Inputs = {
   nearestEdibleIsPoison: {
     displayName: 'Nearest Edible Food/Poison',
     process: (env, agent, entities) => {
-      return env.nearestEdible instanceof Poison ? 1 : 0;
+      return env.nearestEdible instanceof Poison ? 1 : -1;
     }
   }
 };
@@ -162,6 +162,7 @@ class Brain {
       this.network.weights = weights;
     } else {
       this.network.randomize();
+      this.network.weights = this.network.weights.map(i => Util.roundToDecimal(i));
     }
   }
   compute(env, agent, entities) {
@@ -220,12 +221,12 @@ class Agent {
     position,
     matingRate = 0.001,
     mutationRate = 0.001,
-    health = 2000,
-    healthDrain = 10,
-    agroDrain = 3,
-    healthImpact = 4000,
+    health = 500,
+    healthDrain = 2,
+    agroDrain = 2,
+    healthImpact = 300,
     size = 6,
-    isAgro = true,
+    isAgro = false,
     agroRate = -0.8,
     brain
   }) {
@@ -405,7 +406,7 @@ class Edible {
 class Food extends Edible {
   constructor(opts) {
     super(opts);
-    this.healthImpact = 500;
+    this.healthImpact = 50;
   }
   getColor(theme) {
     return theme.foodColor;
@@ -415,7 +416,7 @@ class Food extends Edible {
 class Poison extends Edible {
   constructor(opts) {
     super(opts);
-    this.healthImpact = -1500;
+    this.healthImpact = -100;
   }
   getColor(theme) {
     return theme.poisonColor;
@@ -440,6 +441,9 @@ class Util {
   }
   static checkCollision(obj1, obj2) {
     return obj1.position.dist(obj2.position) < (obj1.size) + (obj2.size);
+  }
+  static roundToDecimal(i) {
+    return Math.round(i * 10) / 10;
   }
 }
 
@@ -466,27 +470,14 @@ class Theme {
 }
 
 function init() {
-
-  const eli = new Brain(JSON.parse('{"inputs":["nearestAgentX","nearestAgentY","nearestAgentIsAgro","nearestEdibleX","nearestEdibleY","nearestEdibleIsPoison"],"outputs":["desiredForceX","desiredForceY","acceleration","agro"],"midLayerNodes":8,"weights":[-0.016921616876730106,-0.9116177007855297,-0.211088401735962,0.9482633087739698,-0.22002697148914763,-0.7164009222974115,0.2974481298887568,-0.7728861278867711,-0.4612727165602948,-0.9057482872474547,-0.22363014936397807,0.7174009574941094,-0.6689692559422378,0.8317849896681464,-0.4885913120909007,-0.4283681193725304,-0.7795324135563417,0.9423751063182837,-0.6470656902112277,0.7581232085104892,0.14253863514772158,-0.110957142924073,-0.3376012526147436,-0.49156799533720363,0.8089592329589084,0.01833418456635716,-0.22941111825040528,0.16233145095374057,0.22049675356778842,0.23567785958879428,0.3019420250403413,0.2896400965920689,-0.1595815642278735,0.7240772416655341,-0.25609900800835517,0.7086656923765218,0.8635936780186348,-0.6103115027109385,-0.22412521006165642,-0.5125590741706265,0.2613232101741225,-0.8866978719902416,-0.46443941118629173,0.3158716879690662,-0.4599018628655127,-0.5460333783690641,0.7788328198168863,-0.3256288618032279,0.8181425010325039,0.30925180901568927,-0.1921250445115934,0.1640716399917701,-0.1633802414940413,-0.6507926409659155,0.9508368354933934,0.28253375103549416,0.31335901237296415,0.597047269672554,0.8537715759321065,0.23118561198869614,0.6461099706816267,-0.43553447034887594,-0.41927151321281286,-0.3045660601097211,-0.23205889657640055,0.4168855082989884,0.34935986588556966,-0.5261242042300656,-0.8023747118581119,-0.9515244626950348,-0.9420707001497868,-0.06180084377183226,-0.24718400917238137,0.07874645513583989,0.9620120687590119,-0.3277365795950984,-0.3849325444703431,0.711674395650622,0.6329665823428194,-0.09073817869789336,0.7478626918676832,-0.5396312314903904,0.014052484739774496,0.6062487277411988,0.029952242507215843,0.9562756309021139,0.7977789935535946,0.2872239879558993,0.6491640971860329,-0.4946610410887633,-0.6253970299893301,0.22309945879802218]}'));
-
-  const opts = {
-    agent: {
-      matingRate: 0.003,
-      mutationRate: 0.001,
-      size: 6
-    },
-    edible: {
-
-    }
-  };
   const sim = new Simulation({
     canvasId: 'main-canvas',
     framerate: 30,
-    theme: 'circus',
+    theme: 'bloop',
     entityConfig: [
-      { Entity: Agent, count: 50, max: 100, min: 2, opts: opts.agent },
-      { Entity: Poison, count: 15, max: 15, min: 15, opts: opts.edible },
-      { Entity: Food, count: 30, max: 30, min: 15, opts: opts.edible }
+      { Entity: Agent, count: 100, max: 100, min: 4, opts: {} },
+      { Entity: Poison, count: 15, max: 15, min: 15, opts: {} },
+      { Entity: Food, count: 30, max: 30, min: 15, opts: {} }
     ]
   });
   sim.run();
