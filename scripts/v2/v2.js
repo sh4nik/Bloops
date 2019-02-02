@@ -224,9 +224,9 @@ class Agent {
     matingRate = 0.001,
     mutationRate = 0.001,
     health = 500,
-    healthDrain = 2,
-    agroDrain = 2,
-    healthImpact = 300,
+    healthDrain = 1,
+    agroDrain = 4,
+    healthImpact = 3000,
     size = 6,
     isAgro = false,
     agroRate = -0.8,
@@ -410,7 +410,7 @@ class Edible {
 class Food extends Edible {
   constructor(opts) {
     super(opts);
-    this.healthImpact = 50;
+    this.healthImpact = 500;
   }
   getColor(theme) {
     return theme.foodColor;
@@ -420,7 +420,7 @@ class Food extends Edible {
 class Poison extends Edible {
   constructor(opts) {
     super(opts);
-    this.healthImpact = -100;
+    this.healthImpact = -1000;
   }
   getColor(theme) {
     return theme.poisonColor;
@@ -434,7 +434,7 @@ class Util {
   static findNearest(entity, entities) {
     return entities.filter(e => e !== entity).reduce((prev, curr) => {
       const currentIsCloser = entity.position.dist(curr.position) < entity.position.dist(prev.position);
-      return currentIsCloser || entity === prev ? curr : prev;
+      return currentIsCloser ? curr : prev;
     });
   }
   static wrapAround(vector, dimensions) {
@@ -479,10 +479,9 @@ function init() {
     framerate: 30,
     theme: 'bloop',
     entityConfig: [
-      { groupId: 'normies', Entity: Agent, count: 100, max: 100, min: 4, opts: { size: 6 } },
-      { groupId: 'crazy', Entity: Agent, count: 1, max: 1, min: 1, opts: { size: 20 } },
-      { groupId: 'poison', Entity: Poison, count: 15, max: 15, min: 15, opts: {} },
-      { groupId: 'food', Entity: Food, count: 30, max: 30, min: 15, opts: {} }
+      { groupId: 'normies', Entity: Agent, count: 100, max: 100, min: 4, opts: {} },
+      { groupId: 'poison', Entity: Poison, count: 25, max: 25, min: 25, opts: {} },
+      { groupId: 'food', Entity: Food, count: 60, max: 60, min: 60, opts: {} }
     ]
   });
   sim.run();
