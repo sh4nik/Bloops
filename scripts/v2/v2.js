@@ -4,8 +4,10 @@ class EntityProcessor {
     this.config = entityConfig;
     this.entities = [];
     this.incubator = [];
+    this.initialized = false;
   }
   step({ renderer }) {
+    this.incubator = this.limitPopulation();
     this.entities = [...this.entities, ...this.incubator];
     this.incubator = this.produceEntities();
     this.entities.forEach(e => {
@@ -18,11 +20,24 @@ class EntityProcessor {
     }
     this.entities = this.entities.filter(e => e.isActive);
   }
+  limitPopulation() {
+    this.config.forEach(({ Entity, count, max, min, opts }) => {
+      const existingEntities = this.entities.filter(e => e instanceof Entity);
+      if (existingEntities.length >= max) {
+        this.incubator = this.incubator.filter(e => !(e instanceof Entity));
+      }
+    });
+    return this.incubator;
+  }
   produceEntities() {
     const entities = [];
-    this.config.forEach(({ Entity, max, min, opts }) => {
+    this.config.forEach(({ Entity, count, max, min, opts }) => {
+      let limit = min;
+      if (!this.initialized) {
+        limit = count;
+      }
       const existingEntities = this.entities.filter(e => e instanceof Entity);
-      for (let i = existingEntities.length; i < max; i++) {
+      for (let i = existingEntities.length; i < limit; i++) {
         opts.position = _p5.createVector(
           Util.random(this.dimensions.width),
           Util.random(this.dimensions.height)
@@ -30,6 +45,7 @@ class EntityProcessor {
         entities.push(new Entity(opts));
       }
     });
+    this.initialized = true;
     return entities;
   }
 }
@@ -181,12 +197,14 @@ class Agent {
     matingRate = 0.001,
     mutationRate = 0.001,
     health = 500,
+    healthDrain = 2,
     size = 6,
     brain
   }) {
     this.isActive = isActive;
     this.age = age;
     this.health = health;
+    this.healthDrain = healthDrain;
     this.size = size;
     this.maxSpeed = 4;
     this.position = position;
@@ -205,7 +223,6 @@ class Agent {
     this.acceleration.mult(0);
     this.updateStats();
     this.think(env, entities);
-    // this.seek(env.nearestEdible);
     this.updateMovement();
     if (env.nearestEdible) this.attemptToEat(env.nearestEdible);
     this.handleMating(env.agents, incubator);
@@ -241,7 +258,7 @@ class Agent {
   }
   updateStats() {
     this.age += 1;
-    this.health -= 2;
+    this.health -= this.healthDrain;
     if (this.health <= 0) this.isActive = false;
   }
   attemptToEat(edible) {
@@ -403,14 +420,25 @@ class Theme {
 }
 
 function init() {
+  const opts = {
+    agent: {
+      matingRate: 0.003,
+      mutationRate: 0.001,
+      healthDrain: 3,
+      size: 6
+    },
+    edible: {
+
+    }
+  };
   const sim = new Simulation({
     canvasId: 'main-canvas',
     framerate: 30,
     theme: 'circus',
     entityConfig: [
-      { Entity: Agent, count: 10, max: 20, min: 1, opts: {} },
-      { Entity: Food, count: 15, max: 60, min: 15, opts: {} },
-      // { Entity: Poison, count: 15, max: 30, min: 15, opts: {} }
+      { Entity: Agent, count: 10, max: 100, min: 1, opts: opts.agent },
+      { Entity: Food, count: 15, max: 60, min: 15, opts: opts.edible },
+      // { Entity: Poison, count: 15, max: 30, min: 15, opts: opts.edible }
     ]
   });
   sim.run();
