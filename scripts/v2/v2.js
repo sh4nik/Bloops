@@ -23,6 +23,7 @@ class EntityProcessor {
   }
   limitPopulation() {
     this.config.forEach(({ groupId, Entity, count, max, min, opts }) => {
+      max = max || count;
       const existingEntities = this.entities.filter(e => e instanceof Entity && e.groupId === groupId);
       if (existingEntities.length >= max) {
         this.incubator = this.incubator.filter(e => !(e instanceof Entity && e.groupId === groupId));
@@ -33,6 +34,7 @@ class EntityProcessor {
   produceEntities() {
     const entities = [];
     this.config.forEach(({ groupId, Entity, count, max, min, opts }) => {
+      min = min || count;
       let limit = min;
       if (!this.initialized) {
         limit = count;
@@ -83,72 +85,6 @@ class Simulation {
     document.getElementById(canvasId).style.backgroundColor = this.renderer.theme.backgroundColor;
   }
 }
-
-let Inputs = {
-  nearestAgentX: {
-    displayName: 'Nearest Agent X',
-    process: (env, agent, entities) => {
-      return env.nearestAgentVector ? env.nearestAgentVector.x : 0;
-    }
-  },
-  nearestAgentY: {
-    displayName: 'Nearest Agent Y',
-    process: (env, agent, entities) => {
-      return env.nearestAgentVector ? env.nearestAgentVector.y : 0;
-    }
-  },
-  nearestAgentIsAgro: {
-    displayName: 'Nearest Agent Agro/Peaceful',
-    process: (env, agent, entities) => {
-      return env.nearestAgent.isAgro ? 1 : -1;
-    }
-  },
-  nearestEdibleX: {
-    displayName: 'Nearest Edible X',
-    process: (env, agent, entities) => {
-      return env.nearestEdibleVector ? env.nearestEdibleVector.x : 0;
-    }
-  },
-  nearestEdibleY: {
-    displayName: 'Nearest Edible Y',
-    process: (env, agent, entities) => {
-      return env.nearestEdibleVector ? env.nearestEdibleVector.y : 0;
-    }
-  },
-  nearestEdibleIsPoison: {
-    displayName: 'Nearest Edible Food/Poison',
-    process: (env, agent, entities) => {
-      return env.nearestEdible instanceof Poison ? 1 : -1;
-    }
-  }
-};
-
-let Outputs = {
-  desiredForceX: {
-    displayName: 'Desired Force X',
-    process: (val, agent) => {
-      agent.applyForce(_p5.createVector(val, 0).mult(agent.maxSpeed));
-    }
-  },
-  desiredForceY: {
-    displayName: 'Desired Force Y',
-    process: (val, agent) => {
-      agent.applyForce(_p5.createVector(0, val).mult(agent.maxSpeed));
-    }
-  },
-  acceleration: {
-    displayName: 'Acceleration',
-    process: (val, agent) => {
-      agent.applyForce(agent.acceleration.mult(val));
-    }
-  },
-  agro: {
-    displayName: 'Agro',
-    process: (val, agent) => {
-      agent.isAgro = val < agent.agroRate;
-    }
-  }
-};
 
 class Brain {
   constructor({ inputs = [], outputs = [], midLayerNodes = 4, weights }) {
@@ -461,6 +397,72 @@ class Util {
   }
 }
 
+let Inputs = {
+  nearestAgentX: {
+    displayName: 'Nearest Agent X',
+    process: (env, agent, entities) => {
+      return env.nearestAgentVector ? env.nearestAgentVector.x : 0;
+    }
+  },
+  nearestAgentY: {
+    displayName: 'Nearest Agent Y',
+    process: (env, agent, entities) => {
+      return env.nearestAgentVector ? env.nearestAgentVector.y : 0;
+    }
+  },
+  nearestAgentIsAgro: {
+    displayName: 'Nearest Agent Agro/Peaceful',
+    process: (env, agent, entities) => {
+      return env.nearestAgent.isAgro ? 1 : -1;
+    }
+  },
+  nearestEdibleX: {
+    displayName: 'Nearest Edible X',
+    process: (env, agent, entities) => {
+      return env.nearestEdibleVector ? env.nearestEdibleVector.x : 0;
+    }
+  },
+  nearestEdibleY: {
+    displayName: 'Nearest Edible Y',
+    process: (env, agent, entities) => {
+      return env.nearestEdibleVector ? env.nearestEdibleVector.y : 0;
+    }
+  },
+  nearestEdibleIsPoison: {
+    displayName: 'Nearest Edible Food/Poison',
+    process: (env, agent, entities) => {
+      return env.nearestEdible instanceof Poison ? 1 : -1;
+    }
+  }
+};
+
+let Outputs = {
+  desiredForceX: {
+    displayName: 'Desired Force X',
+    process: (val, agent) => {
+      agent.applyForce(_p5.createVector(val, 0).mult(agent.maxSpeed));
+    }
+  },
+  desiredForceY: {
+    displayName: 'Desired Force Y',
+    process: (val, agent) => {
+      agent.applyForce(_p5.createVector(0, val).mult(agent.maxSpeed));
+    }
+  },
+  acceleration: {
+    displayName: 'Acceleration',
+    process: (val, agent) => {
+      agent.applyForce(agent.acceleration.mult(val));
+    }
+  },
+  agro: {
+    displayName: 'Agro',
+    process: (val, agent) => {
+      agent.isAgro = val < agent.agroRate;
+    }
+  }
+};
+
 class Theme {
   static get(theme) {
     const themes = {
@@ -489,9 +491,9 @@ function init() {
     framerate: 30,
     theme: 'bloop',
     entityConfig: [
-      { groupId: 'normies', Entity: Agent, count: 100, max: 100, min: 4, opts: {} },
-      { groupId: 'poison', Entity: Poison, count: 25, max: 25, min: 25, opts: { healthImpact: -1000 } },
-      { groupId: 'food', Entity: Food, count: 60, max: 60, min: 60, opts: { healthImpact: 500 } }
+      { groupId: 'normies', Entity: Agent, count: 60, max: 100, min: 4, opts: {} },
+      { groupId: 'poison', Entity: Poison, count: 25, opts: { healthImpact: -1000 } },
+      { groupId: 'food', Entity: Food, count: 60, opts: { healthImpact: 500 } }
     ]
   });
   sim.run();
