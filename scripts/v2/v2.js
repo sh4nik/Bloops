@@ -95,6 +95,12 @@ let Inputs = {
       return env.nearestAgentVector ? env.nearestAgentVector.y : 0;
     }
   },
+  nearestAgentIsAgro: {
+    displayName: 'Nearest Agent Agro/Peaceful',
+    process: (env, agent, entities) => {
+      return env.nearestAgent.isAgro ? 1 : 0;
+    }
+  },
   nearestEdibleX: {
     displayName: 'Nearest Edible X',
     process: (env, agent, entities) => {
@@ -132,6 +138,12 @@ let Outputs = {
     displayName: 'Acceleration',
     process: (val, agent) => {
       agent.applyForce(agent.acceleration.mult(val));
+    }
+  },
+  agro: {
+    displayName: 'Agro',
+    process: (val, agent) => {
+      agent.isAgro = val < agent.agroRate;
     }
   }
 };
@@ -208,16 +220,24 @@ class Agent {
     position,
     matingRate = 0.001,
     mutationRate = 0.001,
-    health = 500,
+    health = 2000,
     healthDrain = 2,
+    agroDrain = 3,
+    healthImpact = 4000,
     size = 6,
+    isAgro = true,
+    agroRate = -0.8,
     brain
   }) {
     this.isActive = isActive;
     this.age = age;
     this.health = health;
     this.healthDrain = healthDrain;
+    this.agroDrain = agroDrain;
+    this.healthImpact = healthImpact;
     this.size = size;
+    this.isAgro = isAgro;
+    this.agroRate = agroRate;
     this.maxSpeed = 4;
     this.position = position;
     this.velocity = _p5.createVector(0, 0);
@@ -225,8 +245,8 @@ class Agent {
     this.matingRate = matingRate;
     this.mutationRate = mutationRate;
     this.brain = brain || new Brain({
-      inputs: ['nearestEdibleX', 'nearestEdibleY', 'nearestEdibleIsPoison'],
-      outputs: ['desiredForceX', 'desiredForceY', 'acceleration'],
+      inputs: ['nearestAgentX', 'nearestAgentY', 'nearestAgentIsAgro', 'nearestEdibleX', 'nearestEdibleY', 'nearestEdibleIsPoison'],
+      outputs: ['desiredForceX', 'desiredForceY', 'acceleration', 'agro'],
       midLayerNodes: 2
     });
   }
@@ -236,7 +256,11 @@ class Agent {
     this.updateStats();
     this.think(env, entities);
     this.updateMovement();
-    if (env.nearestEdible) this.attemptToEat(env.nearestEdible);
+    if(this.isAgro) {
+      if (env.nearestAgent) this.attemptToEat(env.nearestAgent);
+    } else {
+      if (env.nearestEdible) this.attemptToEat(env.nearestEdible);
+    }
     this.handleMating(env.agents, incubator);
     Util.wrapAround(this.position, dimensions);
   }
@@ -244,11 +268,12 @@ class Agent {
     if (renderer && !this.shape) {
       this.shape = new createjs.Shape();
       renderer.stage.addChild(this.shape);
-      this.shape.graphics.beginFill(renderer.theme.agentBodyColor).drawCircle(0, 0, this.size);
     }
     if (this.isActive) {
       this.shape.x = this.position.x;
       this.shape.y = this.position.y;
+      let bodyColor = this.isAgro ? renderer.theme.agroAgentBodyColor : renderer.theme.agentBodyColor;
+      this.shape.graphics.clear().beginFill(bodyColor).drawCircle(0, 0, this.size);
     } else {
       renderer.stage.removeChild(this.shape);
     }
@@ -270,13 +295,17 @@ class Agent {
   }
   updateStats() {
     this.age += 1;
-    this.health -= this.healthDrain;
+    this.health -= (this.healthDrain * (this.isAgro ? this.agroDrain : 1));
     if (this.health <= 0) this.isActive = false;
   }
-  attemptToEat(edible) {
-    if (Util.checkCollision(this, edible)) {
-      this.health += edible.eat();
+  attemptToEat(entity) {
+    if (Util.checkCollision(this, entity)) {
+      this.health += entity.eat();
     }
+  }
+  eat() {
+    this.isActive = false;
+    return this.healthImpact;
   }
   handleMating(agents, incubator) {
     if (Util.random(1) < this.matingRate) {
@@ -398,7 +427,7 @@ class Util {
     return Math.random() * max;
   }
   static findNearest(entity, entities) {
-    return entities.reduce((prev, curr) => {
+    return entities.filter(e => e !== entity).reduce((prev, curr) => {
       const currentIsCloser = entity.position.dist(curr.position) < entity.position.dist(prev.position);
       return currentIsCloser || entity === prev ? curr : prev;
     });
@@ -420,14 +449,16 @@ class Theme {
       circus: {
         backgroundColor: '#000',
         foodColor: '#0da5bd',
-        poisonColor: '#eb504c',
-        agentBodyColor: '#96e7ac'
+        poisonColor: '#ff3838',
+        agentBodyColor: '#96e7ac',
+        agroAgentBodyColor: '#f47d42'
       },
       bloop: {
         backgroundColor: '#000006',
         foodColor: '#00f4b6',
         poisonColor: '#bf4fff',
-        agentBodyColor: '#3de1ff'
+        agentBodyColor: '#3de1ff',
+        agroAgentBodyColor: '#bb1133'
       }
     };
     return themes[theme];
@@ -439,7 +470,7 @@ function init() {
     agent: {
       matingRate: 0.003,
       mutationRate: 0.001,
-      healthDrain: 3,
+      healthDrain: 8,
       size: 6
     },
     edible: {
@@ -452,8 +483,8 @@ function init() {
     theme: 'bloop',
     entityConfig: [
       { Entity: Agent, count: 50, max: 100, min: 2, opts: opts.agent },
-      { Entity: Food, count: 30, max: 30, min: 30, opts: opts.edible },
-      { Entity: Poison, count: 15, max: 15, min: 15, opts: opts.edible }
+      { Entity: Poison, count: 15, max: 15, min: 15, opts: opts.edible },
+      { Entity: Food, count: 30, max: 30, min: 15, opts: opts.edible }
     ]
   });
   sim.run();
