@@ -10,6 +10,7 @@ class EntityProcessor {
     this.incubator = this.limitPopulation();
     this.entities = [...this.entities, ...this.incubator];
     this.incubator = this.produceEntities();
+    this.entities.sort(a => a instanceof Agent ? 1 : -1);
     this.entities.forEach(e => {
       if (e.step) e.step(this.entities, this.incubator, this.dimensions);
     });
@@ -343,11 +344,20 @@ class Agent {
   }
   mate(partner) {
     const position = this.position.copy();
-    position.x += 10;
-    position.y += 10;
+    position.x += 20;
+    position.y += 20;
     return new Agent({
       brain: this.brain.mate(partner.brain),
-      position
+      position,
+      groupId: this.groupId,
+      healthDrain: this.healthDrain,
+      agroDrain: this.agroDrain,
+      healthImpact: this.healthImpact,
+      size: this.size,
+      agroRate: this.agroRate,
+      maxSpeed: this.maxSpeed,
+      matingRate: this.matingRate,
+      mutationRate: this.mutationRate
     });
   }
   prepEnvironment(entities) {
@@ -410,7 +420,7 @@ class Edible {
 class Food extends Edible {
   constructor(opts) {
     super(opts);
-    this.healthImpact = 500;
+    this.healthImpact = opts.healthImpact;
   }
   getColor(theme) {
     return theme.foodColor;
@@ -420,7 +430,7 @@ class Food extends Edible {
 class Poison extends Edible {
   constructor(opts) {
     super(opts);
-    this.healthImpact = -1000;
+    this.healthImpact = opts.healthImpact;
   }
   getColor(theme) {
     return theme.poisonColor;
@@ -480,8 +490,8 @@ function init() {
     theme: 'bloop',
     entityConfig: [
       { groupId: 'normies', Entity: Agent, count: 100, max: 100, min: 4, opts: {} },
-      { groupId: 'poison', Entity: Poison, count: 25, max: 25, min: 25, opts: {} },
-      { groupId: 'food', Entity: Food, count: 60, max: 60, min: 60, opts: {} }
+      { groupId: 'poison', Entity: Poison, count: 25, max: 25, min: 25, opts: { healthImpact: -1000 } },
+      { groupId: 'food', Entity: Food, count: 60, max: 60, min: 60, opts: { healthImpact: 500 } }
     ]
   });
   sim.run();
