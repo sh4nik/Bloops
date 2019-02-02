@@ -357,6 +357,7 @@ class Food extends Edible {
   constructor(opts) {
     super(opts);
     this.healthImpact = opts.healthImpact;
+    this.size = opts.size;
   }
   getColor(theme) {
     return theme.foodColor;
@@ -367,6 +368,7 @@ class Poison extends Edible {
   constructor(opts) {
     super(opts);
     this.healthImpact = opts.healthImpact;
+    this.size = opts.size;
   }
   getColor(theme) {
     return theme.poisonColor;
@@ -491,9 +493,9 @@ function init() {
     framerate: 30,
     theme: 'bloop',
     entityConfig: [
-      { groupId: 'normies', Entity: Agent, count: 60, max: 100, min: 4, opts: {} },
-      { groupId: 'poison', Entity: Poison, count: 25, opts: { healthImpact: -1000 } },
-      { groupId: 'food', Entity: Food, count: 60, opts: { healthImpact: 500 } }
+      { groupId: 'normies', Entity: Agent, count: 60, max: 100, min: 4, opts: { size: 8 } },
+      { groupId: 'poison', Entity: Poison, count: 25, opts: { healthImpact: -1000, size: 4 } },
+      { groupId: 'food', Entity: Food, count: 60, opts: { healthImpact: 500, size: 3 } }
     ]
   });
   sim.run();
