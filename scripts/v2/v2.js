@@ -157,11 +157,11 @@ class Agent {
     groupId,
     age = 0,
     position,
-    matingRate = 0.001,
-    mutationRate = 0.001,
+    matingRate = 0.01,
+    mutationRate = 0.1,
     health = 500,
-    healthDrain = 1,
-    agroDrain = 4,
+    healthDrain = 10,
+    agroDrain = 2,
     healthImpact = 3000,
     size = 6,
     isAgro = false,
@@ -178,7 +178,7 @@ class Agent {
     this.size = size;
     this.isAgro = isAgro;
     this.agroRate = agroRate;
-    this.maxSpeed = 4;
+    this.maxSpeed = 2;
     this.position = position;
     this.velocity = _p5.createVector(0, 0);
     this.acceleration = _p5.createVector(0, 0);
@@ -493,15 +493,17 @@ class Theme {
 
 function init() {
   const eli = new Brain(JSON.parse('{"inputs":["nearestAgentX","nearestAgentY","nearestAgentIsAgro","nearestEdibleX","nearestEdibleY","nearestEdibleIsPoison"],"outputs":["desiredForceX","desiredForceY","acceleration","agro"],"midLayerNodes":8,"weights":[-0.6,-0.1,0.2,-0.1,0.9,0.2,-0.3,0,0.6,0.9,-0.9,0.5,0.8,-0.5,-0.3,-0.5,0,-0.3,0.6,-0.7,0.2,0.4,-0.3,-0.1,0.5,1,0.3,-0.1,0.8,0,-0.8,0.9,0.8,-0.3,0.8,0.3,0.9,0.4,-0.1,0.2,-0.9,0.1,0.5,-0.2,-0.6,0.4,0.4,0.2,-0.2,-0.2,0.7,-0.6,-0.3,-0.5,0.1,0.9,0.3,0.6,1,-0.5,-0.9,-0.6,0.5,-0.1,-0.8,-0.3,0.4,0.6,0.7,0.9,0.5,-0.2,0.8,-0.8,-0.5,-0.1,-0.7,-1,-0.4,-0.7,-0.1,0.2,0.9,0.4,-0.3,0.4,0.7,0.8,-1,-0.7,0,0.4]}'));
+  const eater = new Brain(JSON.parse('{"inputs":["nearestAgentX","nearestAgentY","nearestAgentIsAgro","nearestEdibleX","nearestEdibleY","nearestEdibleIsPoison"],"outputs":["desiredForceX","desiredForceY","acceleration","agro"],"midLayerNodes":8,"weights":[0.7,0.7,0.6,0.5,0,-0.8,0.1,0.4,-0.2,-0.6,0.3,0.5,0.7,-1,0.3,-0.9,-0.8,-0.1,-1,0.4,0.6,0.3,0.1,0.9,0.9,-0.8,-0.1,0.4,-0.5,-0.3,-0.9,-0.4,-0.8,0.7,-0.4,0.8,-0.6,-0.5,0.8,-0.7,0.7,0.2,-0.6,-0.5,0.3,0.7,0.2,0.1,-0.3,0.7,0.3,-0.9,0.3,-0.1,0.9,-0.5,0.6,0.6,0.1,-0.3,0.4,0.7,-0.6,-0.3,-0.2,0.7,0.2,0,-0.6,-0.4,-0.4,0,0.3,0.1,-0.3,0.4,0.7,0.9,-0.5,-0.3,-0.9,0.8,0.5,0,0.4,0.8,0.1,-0.8,-0.1,0.7,0,-0.4]}'));
+  const avoider = new Brain(JSON.parse('{"inputs":["nearestAgentX","nearestAgentY","nearestAgentIsAgro","nearestEdibleX","nearestEdibleY","nearestEdibleIsPoison"],"outputs":["desiredForceX","desiredForceY","acceleration","agro"],"midLayerNodes":8,"weights":[-0.8,0.8,0.5,0,0.3,-0.8,0.4,0.7,0.3,0.5,0.7,0.9,0,-0.1,-0.8,-0.9,-0.3,0.8,-0.4,0.3,0.9,0.7,-0.6,0.7,-0.1,-0.2,-0.9,-0.9,0.6,0.1,-0.9,-0.4,-0.8,0.7,-0.4,0.8,-0.6,-0.5,0.8,-0.7,0.7,0.2,-0.6,-0.5,0.3,0.7,0.2,0.1,-0.3,0.7,0.3,-0.9,0.3,-0.1,0.9,-0.5,0.6,0.6,0.1,-0.3,0.8,-0.5,0.5,0.3,0.6,0.1,-0.2,-0.1,-0.6,-0.3,-0.3,0.1,0.6,-0.2,-0.1,0.7,0.6,-0.1,0.2,-0.9,-0.1,-0.1,-0.8,0.7,0.8,0.2,-0.6,1,-0.7,0.2,0.6,-0.4]}'));
   const sim = new Simulation({
     canvasId: 'main-canvas',
     framerate: 30,
     theme: 'bloop',
     entityConfig: [
-      { groupId: 'normies', Entity: Agent, count: 60, max: 100, min: 4, opts: { size: 8 } },
-      { groupId: 'eli', Entity: Agent, count: 4, opts: { size: 8, brain: eli } },
-      { groupId: 'poison', Entity: Poison, count: 25, opts: { healthImpact: -1000, size: 5 } },
-      { groupId: 'food', Entity: Food, count: 60, opts: { healthImpact: 500, size: 4 } }
+      { groupId: 'avoider', Entity: Agent, count: 60, max: 100, min: 20, opts: { size: 8, brain: avoider } },
+      { groupId: 'normies', Entity: Agent, count: 10, max: 100, min: 20, opts: { size: 8 } },
+      { groupId: 'poison', Entity: Poison, count: 60, opts: { healthImpact: -10000, size: 5 } },
+      { groupId: 'food', Entity: Food, count: 30, opts: { healthImpact: 5000, size: 4 } }
     ]
   });
   sim.run();
