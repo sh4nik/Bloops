@@ -1,7 +1,7 @@
 Bloops are colorful autonomous agents with the ability to live and interact with their environment.  
 Their brains consist of a simple Neural Network which is evolved over time using a continuous Genetic Algorithm.  
 
-### [Demo](http://sh4nik.com/bloops)
+### [Demo](http://sh4nik.com/Bloops/demo)
 
 ### Food:
 

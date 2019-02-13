@@ -101,12 +101,24 @@ class Brain {
       this.network.randomize();
       this.network.weights = this.network.weights.map(i => Util.roundToDecimal(i));
     }
+
+    var layer_defs = [];
+    layer_defs.push({ type: 'input', out_sx: 1, out_sy: 1, out_depth: this.inputs.length });
+    layer_defs.push({ type: 'fc', num_neurons: this.midLayerNodes, activation: 'tanh' });
+    layer_defs.push({ type: 'regression', num_neurons: this.outputs.length });
+    this.net = new convnetjs.Net();
+    this.net.makeLayers(layer_defs);
+    console.log('Brain: ' + JSON.stringify(this.net.toJSON()));
   }
   compute(env, agent, entities) {
     let inputValues = this.inputs.map(i => Inputs[i].process(env, agent, entities));
     let outputValues = [];
-    this.network.compute(inputValues, outputValues);
-    this.outputs.map((o, index) => Outputs[o].process(outputValues[index], agent));
+    // this.network.compute(inputValues, outputValues);
+
+    var inputVol = new convnetjs.Vol(inputValues);
+    var outputVol = this.net.forward(inputVol);
+
+    this.outputs.map((o, index) => Outputs[o].process(outputVol.w[index], agent));
   }
   extract() {
     return {
@@ -159,13 +171,13 @@ class Agent {
     position,
     matingRate = 0.01,
     mutationRate = 0.1,
-    health = 500,
+    health = 5000,
     healthDrain = 10,
     agroDrain = 2,
     healthImpact = 3000,
     size = 6,
     isAgro = false,
-    agroRate = -0.8,
+    agroRate = -0.5,
     brain
   }) {
     this.isActive = isActive;
@@ -338,7 +350,7 @@ class Edible {
       this.shape = new createjs.Shape();
       renderer.stage.addChild(this.shape);
       this.shape.graphics.setStrokeStyle(2).beginStroke(renderer.theme.edibleOutlineColor).beginFill(this.getColor(renderer.theme)).drawCircle(0, 0, this.size);
-      renderer.stage.setChildIndex( this.shape, 0);
+      renderer.stage.setChildIndex(this.shape, 0);
     }
     if (this.isActive) {
       this.shape.x = this.position.x;
@@ -468,14 +480,32 @@ let Outputs = {
 class Theme {
   static get(theme) {
     const themes = {
-      circus: {
+      solar: {
+        backgroundColor: '#1a3c54',
+        foodColor: '#0cd6b3',
+        poisonColor: '#c51d21',
+        agentBodyColor: '#e29e00',
+        agentOutlineColor: '#1a3c54',
+        edibleOutlineColor: '#1a3c54',
+        agroAgentBodyColor: '#f96b0e'
+      },
+      jah: {
         backgroundColor: '#000',
-        foodColor: '#0da5bd',
-        poisonColor: '#ff3838',
-        agentBodyColor: '#72ff83',
+        foodColor: '#e6cf10',
+        poisonColor: '#444',
+        agentBodyColor: '#005c25',
         agentOutlineColor: '#000',
-        edileOutlineColor: '#000',
-        agroAgentBodyColor: '#ff803f'
+        // edibleOutlineColor: '#000',
+        agroAgentBodyColor: '#740028'
+      },
+      halloween: {
+        backgroundColor: '#000',
+        foodColor: '#20d8d2',
+        poisonColor: '#444',
+        agentBodyColor: '#f7e200',
+        agentOutlineColor: '#000',
+        // edibleOutlineColor: '#000',
+        agroAgentBodyColor: '#f4561c'
       },
       bloop: {
         backgroundColor: '#223',
@@ -498,10 +528,13 @@ function init() {
   const sim = new Simulation({
     canvasId: 'main-canvas',
     framerate: 30,
-    theme: 'bloop',
+    // theme: 'solar',
+    theme: 'jah',
+    // theme: 'halloween',
+    // theme: 'bloop',
     entityConfig: [
-      { groupId: 'avoider', Entity: Agent, count: 60, max: 100, min: 20, opts: { size: 8, brain: avoider } },
-      { groupId: 'normies', Entity: Agent, count: 10, max: 100, min: 20, opts: { size: 8 } },
+      { groupId: 'avoider', Entity: Agent, count: 10, max: 100, min: 20, opts: { size: 8, brain: avoider } },
+      { groupId: 'normies', Entity: Agent, count: 80, max: 100, min: 20, opts: { size: 8 } },
       { groupId: 'poison', Entity: Poison, count: 60, opts: { healthImpact: -10000, size: 5 } },
       { groupId: 'food', Entity: Food, count: 30, opts: { healthImpact: 5000, size: 4 } }
     ]
